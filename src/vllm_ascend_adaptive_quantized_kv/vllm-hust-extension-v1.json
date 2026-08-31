@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "bundle_id": "org.vllm-hust.ascend-adaptive-quantized-kv",
+  "bundle_version": "0.1.0.dev0",
+  "host_api_range": ">=1,<2",
+  "components": [
+    {
+      "component_id": "continuing-prefill-profiler",
+      "contracts": [
+        "vllm.ascend.continuing-prefill.observer.v1"
+      ],
+      "execution_planes": [
+        "worker",
+        "device"
+      ],
+      "isolation": "trusted_in_process",
+      "implementation_ref": "vllm_ascend_adaptive_quantized_kv.observer:ContinuingPrefillObserver",
+      "permissions": [
+        "device_access",
+        "filesystem_write"
+      ]
+    }
+  ]
+}
+
