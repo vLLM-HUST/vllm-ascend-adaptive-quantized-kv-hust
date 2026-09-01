@@ -31,7 +31,7 @@ test = [
   "ruff>=0.12",
 ]
 
-[project.entry-points."vllm.extension_bundles"]
+[project.entry-points."vllm_hust.extension_bundles"]
 "org.vllm-hust.ascend-adaptive-quantized-kv" = "vllm_ascend_adaptive_quantized_kv"
 
 [project.urls]
