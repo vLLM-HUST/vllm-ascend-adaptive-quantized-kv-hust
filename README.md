@@ -78,6 +78,12 @@ Experiment contracts, raw evidence, runners, and claims remain in
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv).
 They are not copied into the runtime package.
 
+The exact legacy Ascend source drafts retained for host-contract design are
+listed in
+[`docs/LEGACY_CONTRACT_EVIDENCE.md`](docs/LEGACY_CONTRACT_EVIDENCE.md). Those
+references are boundary evidence only and do not activate the extension or
+support a performance claim.
+
 ## Security and release
 
 - Installation never enables the extension.

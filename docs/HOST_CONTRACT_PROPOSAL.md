@@ -51,6 +51,14 @@ registries or mutate a platform global directly.
 - Activate P1 with a placeholder entry point: could start a service without the
   required behavior and create false runtime evidence.
 
+## Legacy evidence mapping
+
+Owner direction maps reconciled Ascend PR #271 at `3689bbc` and open Draft
+#279 at `360056b` to this plugin as design evidence for the observer and graph
+lifecycle contracts. Their exact roles and negative-result boundaries are
+recorded in `LEGACY_CONTRACT_EVIDENCE.md`. They are not host APIs, runtime
+dependencies, or permission to restore a direct core delivery route.
+
 ## Acceptance
 
 The plugin may add runtime activation only after repository owners approve the

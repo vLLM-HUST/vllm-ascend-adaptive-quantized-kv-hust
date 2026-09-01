@@ -20,6 +20,10 @@ ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv)，
 不会混入 PyPI 运行时包。
 
+张老师指定保留的历史 Ascend PR #271/#279 及其合同证据边界记录在
+[`docs/LEGACY_CONTRACT_EVIDENCE.md`](docs/LEGACY_CONTRACT_EVIDENCE.md)。这些
+引用只用于接口设计，不能视为宿主 API、运行依赖或性能结果。
+
 后续发布使用 PyPI Trusted Publishing。仓库和 CI 中不得保存密码、2FA 验证
 码、恢复码或长期 API token。
 
