@@ -21,3 +21,6 @@ ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主
 
 后续发布使用 PyPI Trusted Publishing。仓库和 CI 中不得保存密码、2FA 验证
 码、恢复码或长期 API token。
+
+CI 在 Python 3.10、3.12 和 3.14 上运行测试，并在 Python 3.12 上构建和校验
+惰性 Bundle 发行包。当前流水线只保留构建产物，不会上传到 PyPI。

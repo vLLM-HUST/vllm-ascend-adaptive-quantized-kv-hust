@@ -52,6 +52,7 @@ uv pip install -e ".[test]"
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
 .venv/bin/python -m build
+.venv/bin/python scripts/validate_distribution.py --dist dist
 ```
 
 Install the resulting wheel together with `vllmhust` in a clean environment,
@@ -65,6 +66,10 @@ vllmhust plugin validate org.vllm-hust.ascend-adaptive-quantized-kv
 
 Validation proves package discovery and metadata only. It is not a runtime or
 NPU result.
+
+The repository CI runs the tests on Python 3.10, 3.12, and 3.14. Python 3.12
+also builds the wheel and sdist, validates the inert Bundle boundary, and
+retains the validated distributions for 14 days. CI does not publish to PyPI.
 
 ## Research evidence
 
