@@ -81,8 +81,9 @@ They are not copied into the runtime package.
 ## Security and release
 
 - Installation never enables the extension.
-- Runtime activation will require an explicit `vllm-hust-ext extension enable` after
-  the host contract is accepted.
+- While the manifest remains `import_only`, `vllm-hust-ext extension enable`
+  refuses it. Runtime activation requires both an accepted host contract and a
+  later manifest revision that declares an active implementation.
 - PyPI publication should use Trusted Publishing.
 - Passwords, 2FA codes, recovery codes, and long-lived API tokens must not be
   stored in this repository or CI configuration.
