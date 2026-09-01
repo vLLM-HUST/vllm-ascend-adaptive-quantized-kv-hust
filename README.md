@@ -21,7 +21,7 @@ This repository is at package stage P1. It provides:
 
 It does not yet activate runtime behavior, patch vLLM or vLLM Ascend, launch a
 model service, or make a performance claim. The current host baselines do not
-yet expose the reviewed contracts required by this Bundle. Installing the
+yet expose the reviewed contracts required by this extension. Installing the
 package is therefore inert.
 
 ## Delivery policy
@@ -69,7 +69,7 @@ Validation proves package discovery and metadata only. It is not a runtime or
 NPU result.
 
 The repository CI runs the tests on Python 3.10, 3.12, and 3.14. Python 3.12
-also builds the wheel and sdist, validates the inert Bundle boundary, and
+also builds the wheel and sdist, validates the inert extension boundary, and
 retains the validated distributions for 14 days. CI does not publish to PyPI.
 
 ## Research evidence

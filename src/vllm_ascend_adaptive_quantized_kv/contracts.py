@@ -12,7 +12,7 @@ COMPATIBILITY_SCHEMA: Final = "adaptive-quantized-kv-host-compatibility/v1"
 
 
 class HostContractError(RuntimeError):
-    """The enabled Bundle cannot execute against the advertised host."""
+    """The enabled extension cannot execute against the advertised host."""
 
 
 @dataclass(frozen=True, slots=True)

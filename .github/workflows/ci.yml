@@ -36,7 +36,7 @@ jobs:
       - name: Build distributions
         if: matrix.python-version == '3.12'
         run: python -m build
-      - name: Validate inert Bundle distributions
+      - name: Validate inert extension distributions
         if: matrix.python-version == '3.12'
         run: python scripts/validate_distribution.py --dist dist --output distribution-receipt.json
       - name: Upload validated distributions

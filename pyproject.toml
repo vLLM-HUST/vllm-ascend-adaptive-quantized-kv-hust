@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "vllm-ascend-adaptive-quantized-kv-hust"
 version = "0.1.0.dev0"
-description = "Adaptive quantized-KV extension Bundle for vLLM-HUST on Ascend"
+description = "Adaptive quantized-KV extension for vLLM-HUST on Ascend"
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 license = {text = "Apache-2.0"}
