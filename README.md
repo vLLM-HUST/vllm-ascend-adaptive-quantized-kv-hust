@@ -24,6 +24,15 @@ model service, or make a performance claim. The current host baselines do not
 yet expose the reviewed contracts required by this Bundle. Installing the
 package is therefore inert.
 
+## Delivery policy
+
+This organization plugin is the project implementation carrier. The project
+does not submit optimization commits or PRs directly to `vllm-hust` or
+`vllm-ascend-hust`. Missing generic host interfaces are reviewed in this
+repository and must be delivered by the host owner or another explicitly
+approved route. Reproducible workload contracts remain in the research carrier
+with its fixed `intellistream/llm-serving-workloads` gitlink.
+
 ## Identity
 
 | Layer | Identifier |

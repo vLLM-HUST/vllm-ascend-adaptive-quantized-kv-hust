@@ -57,3 +57,9 @@ The plugin may add runtime activation only after repository owners approve the
 contract identifiers or their replacements, the pinned host source advertises
 them, and disabled-path tests prove baseline equivalence.
 
+Under the 2026-09-01 organization delivery policy, this proposal is a host
+dependency request rather than permission for this project to submit an
+optimization PR directly to `vllm-hust` or `vllm-ascend-hust`. If the contracts
+are required, the host owner must provide them or explicitly name another
+accepted delivery route. All Adaptive Quantized KV behavior, receipts, policy,
+and visible implementation progress remain in this organization plugin.
