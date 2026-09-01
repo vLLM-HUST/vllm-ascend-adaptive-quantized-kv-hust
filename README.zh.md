@@ -1,9 +1,8 @@
 # vLLM Ascend 自适应量化 KV 插件
 
-本仓库是 Adaptive Quantized KV 课题面向 vLLM-HUST 和 Ascend 的独立扩展
-Bundle。
+本仓库是 Adaptive Quantized KV 课题面向 vLLM-HUST 和 Ascend 的独立扩展。
 
-当前处于 P1 打包阶段，只提供 Bundle v1 静态清单、宿主合同兼容性回执、
+当前处于 P1 打包阶段，只提供 Extension Manager 0.2 实验性静态清单、宿主合同兼容性回执、
 ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主接口提案。
 
 当前版本不会自动激活运行时逻辑，不会 patch vLLM 或 vLLM Ascend，不会启动
@@ -23,4 +22,4 @@ ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主
 码、恢复码或长期 API token。
 
 CI 在 Python 3.10、3.12 和 3.14 上运行测试，并在 Python 3.12 上构建和校验
-惰性 Bundle 发行包。当前流水线只保留构建产物，不会上传到 PyPI。
+惰性扩展发行包。当前流水线只保留构建产物，不会上传到 PyPI。

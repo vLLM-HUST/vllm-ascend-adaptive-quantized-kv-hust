@@ -2,7 +2,7 @@
 
 English | [Simplified Chinese](README.zh.md)
 
-Independent vLLM-HUST extension Bundle for the Adaptive Quantized KV research
+Independent vLLM-HUST extension for the Adaptive Quantized KV research
 project on Ascend.
 
 Repository:
@@ -12,7 +12,7 @@ Repository:
 
 This repository is at package stage P1. It provides:
 
-- a static Bundle v1 manifest discoverable by `vllmhust` without importing
+- a static experimental 0.2 manifest discoverable by `vllm-hust-ext` without importing
   implementation modules;
 - fail-closed host-contract compatibility receipts;
 - typed validation of the retained ACL graph reset and recapture receipts;
@@ -39,7 +39,7 @@ with its fixed `intellistream/llm-serving-workloads` gitlink.
 | --- | --- |
 | Distribution | `vllm-ascend-adaptive-quantized-kv-hust` |
 | Python package | `vllm_ascend_adaptive_quantized_kv` |
-| Bundle ID | `org.vllm-hust.ascend-adaptive-quantized-kv` |
+| Extension ID | `org.vllm-hust.ascend-adaptive-quantized-kv` |
 | Component | `continuing-prefill-profiler` |
 | Proposed contract | `vllm.ascend.continuing-prefill.observer.v1` |
 
@@ -55,13 +55,14 @@ uv pip install -e ".[test]"
 .venv/bin/python scripts/validate_distribution.py --dist dist
 ```
 
-Install the resulting wheel together with `vllmhust` in a clean environment,
+Install the resulting wheel together with `vllm-hust-ext` in a clean environment,
 then run:
 
 ```bash
-vllmhust plugin list
-vllmhust plugin inspect org.vllm-hust.ascend-adaptive-quantized-kv
-vllmhust plugin validate org.vllm-hust.ascend-adaptive-quantized-kv
+vllm-hust-ext extension list
+vllm-hust-ext extension inspect org.vllm-hust.ascend-adaptive-quantized-kv
+vllm-hust-ext extension validate org.vllm-hust.ascend-adaptive-quantized-kv
+vllm-hust-ext extension check org.vllm-hust.ascend-adaptive-quantized-kv
 ```
 
 Validation proves package discovery and metadata only. It is not a runtime or
@@ -79,8 +80,8 @@ They are not copied into the runtime package.
 
 ## Security and release
 
-- Installation never enables the Bundle.
-- Runtime activation will require an explicit `vllmhust plugin enable` after
+- Installation never enables the extension.
+- Runtime activation will require an explicit `vllm-hust-ext extension enable` after
   the host contract is accepted.
 - PyPI publication should use Trusted Publishing.
 - Passwords, 2FA codes, recovery codes, and long-lived API tokens must not be

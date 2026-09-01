@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate inert Bundle distributions without importing vLLM."""
+"""Validate an inert extension distribution without importing vLLM."""
 
 from __future__ import annotations
 
@@ -14,9 +14,10 @@ from pathlib import Path
 
 EXPECTED_DISTRIBUTION = "vllm-ascend-adaptive-quantized-kv-hust"
 EXPECTED_VERSION = "0.1.0.dev0"
-EXPECTED_BUNDLE_ID = "org.vllm-hust.ascend-adaptive-quantized-kv"
+EXPECTED_EXTENSION_ID = "org.vllm-hust.ascend-adaptive-quantized-kv"
 EXPECTED_ENTRY_POINT = "vllm_ascend_adaptive_quantized_kv"
-MANIFEST_NAME = "vllm-hust-extension-v1.json"
+ENTRY_POINT_GROUP = "vllm_hust.extension_bundles"
+MANIFEST_NAME = "vllm-hust-extension-v0.2.json"
 
 
 def _sha256(path: Path) -> str:
@@ -47,15 +48,19 @@ def validate_distribution(dist: Path) -> dict[str, object]:
         manifest_entries = [
             item for item in entries if Path(item.filename).name == MANIFEST_NAME
         ]
-        manifest = _single(manifest_entries, "Bundle manifest")
+        manifest = _single(manifest_entries, "extension manifest")
         if not _regular_file(manifest):
-            raise ValueError("Bundle manifest must be a regular file")
+            raise ValueError("extension manifest must be a regular file")
 
         payload = json.loads(archive.read(manifest))
-        if payload.get("bundle_id") != EXPECTED_BUNDLE_ID:
-            raise ValueError("Bundle manifest has an unexpected bundle_id")
-        if payload.get("bundle_version") != EXPECTED_VERSION:
-            raise ValueError("Bundle manifest has an unexpected bundle_version")
+        if payload.get("schema_version") != "0.2-experimental":
+            raise ValueError("extension manifest has an unexpected schema_version")
+        if payload.get("extension_id") != EXPECTED_EXTENSION_ID:
+            raise ValueError("extension manifest has an unexpected extension_id")
+        if payload.get("extension_version") != EXPECTED_VERSION:
+            raise ValueError("extension manifest has an unexpected extension_version")
+        if payload.get("implementation", [{}])[0].get("status") != "import_only":
+            raise ValueError("P1 extension implementation must remain import_only")
 
         metadata_entry = _single(
             [item for item in entries if item.filename.endswith(".dist-info/METADATA")],
@@ -78,19 +83,19 @@ def validate_distribution(dist: Path) -> dict[str, object]:
         parser = configparser.ConfigParser()
         parser.optionxform = str
         parser.read_string(archive.read(entry_points_entry).decode("utf-8"))
-        if set(parser.sections()) != {"vllm.extension_bundles"}:
-            raise ValueError("wheel must expose only the static Bundle entry point")
-        if dict(parser["vllm.extension_bundles"]) != {
-            EXPECTED_BUNDLE_ID: EXPECTED_ENTRY_POINT
+        if set(parser.sections()) != {ENTRY_POINT_GROUP}:
+            raise ValueError("wheel must expose only the static extension entry point")
+        if dict(parser[ENTRY_POINT_GROUP]) != {
+            EXPECTED_EXTENSION_ID: EXPECTED_ENTRY_POINT
         }:
-            raise ValueError("wheel has an unexpected Bundle entry point")
+            raise ValueError("wheel has an unexpected extension entry point")
 
     return {
         "schema_version": "adaptive-quantized-kv-distribution-validation/v1",
         "status": "PASS",
         "distribution": EXPECTED_DISTRIBUTION,
         "version": EXPECTED_VERSION,
-        "bundle_id": EXPECTED_BUNDLE_ID,
+        "extension_id": EXPECTED_EXTENSION_ID,
         "wheel": {"name": wheel.name, "sha256": _sha256(wheel)},
         "sdist": {"name": sdist.name, "sha256": _sha256(sdist)},
         "runtime_activation_present": False,

@@ -1,5 +1,9 @@
 # P1 Static Bundle Validation
 
+> Historical evidence: this record validates the superseded Bundle v1 prototype.
+> Current packaging uses `vllm-hust-ext` and Manifest 0.2 experimental; the old
+> command names below are retained only to preserve the original evidence.
+
 ## Scope
 
 This receipt validates packaging and lifecycle-manager discovery only. It does
