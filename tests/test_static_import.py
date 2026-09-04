@@ -18,7 +18,8 @@ def test_package_import_does_not_import_runtime_or_reference() -> None:
             "import vllm_ascend_adaptive_quantized_kv.observer; "
             "loaded=set(sys.modules)-before; "
             "forbidden=('vllm', 'vllm_ascend', 'torch', 'torch_npu', "
-            "'vllm_ascend_adaptive_quantized_kv.reference'); "
+            "'vllm_ascend_adaptive_quantized_kv.reference', "
+            "'vllm_ascend_adaptive_quantized_kv.snapshot_reference'); "
             "assert not any(name == prefix or name.startswith(prefix+'.') "
             "for name in loaded for prefix in forbidden), loaded"
         ),

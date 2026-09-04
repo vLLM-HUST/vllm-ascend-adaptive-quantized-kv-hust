@@ -30,7 +30,7 @@ jobs:
       - name: Require Torch and run component tests
         run: |
           python -c "import torch; assert torch.__version__.split('+')[0] == '2.8.0'; assert torch.version.cuda is None"
-          python -m pytest -q tests/test_reference.py tests/test_static_import.py
+          python -m pytest -q
   test:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest

@@ -99,6 +99,13 @@ NPU correctness, graph safety, quality or end-to-end performance. Default
 discovery imports neither Torch nor the reference; the manifest remains inert.
 A separate Python 3.12 CI job requires CPU Torch and runs the component tests.
 
+For offline host-shaped fixtures only,
+`vllm_ascend_adaptive_quantized_kv.snapshot_reference` converts declared packed
+NZ storage, cumulative query ends, and decode/prefill metadata into reference
+inputs. It rejects ambiguous storage and unsupported semantics. It is not an
+NPU exporter or runtime adapter; see
+[`docs/HOST_EXECUTION_AUDIT_20260905.md`](docs/HOST_EXECUTION_AUDIT_20260905.md).
+
 Source attribution, reproduced old-code defects, and remaining integration
 decisions are tracked in [the takeover control](docs/PR19_TAKEOVER_CONTROL_20260904.md).
 

@@ -25,12 +25,28 @@ This work does not reopen PR #19 or modify a core host repository.
 | S0 | Audit exact PR and reproduce admission/correctness gaps off-device | Record findings and disposition of every changed area | Complete |
 | S1 | Implement a standalone CPU tensor reference in this extension | Dense-reference agreement for grouped heads, variable lengths, non-unit scales, page order, causal masks and partial blocks; invalid inputs rejected | Complete; validation below |
 | S2 | Verify packaging and submit a student-authored Draft PR | Existing inert-package tests plus component tests, isolated build and CI; exact source attribution | Complete: Draft #3; four CI jobs pass |
+| S3a | Recheck host selection and bridge explicit CPU snapshots to the reference | Pinned source audit; cumulative-length/decode-prefix/NZ conversion tests | Complete: 122 total tests pass |
 | S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Blocked |
 | S4 | Run matched NPU component/service validation | Correctness, graph replay, provenance and resource gates pass before timing claims or matrix expansion | Blocked |
 
-Only S0-S2 execute now. The existing manifest stays `import_only`; there is no
-registration, environment activation, monkey patch, service, NPU request or
+The initial takeover executed S0-S2. S3a was added on 2026-09-05 as off-device
+integration preparation. The existing manifest stays `import_only`; there is
+no registration, environment activation, monkey patch, service, NPU request or
 change to the parent v5 gate. A CPU component pass cannot advance D1 or D2.
+
+2026-09-05 continuation: S3a is now in scope, following the owner request to
+continue local integration preparation. S3a is not activation or host surgery.
+The candidate source observations are Ascend
+`2c8c722107a54127999a64c4eb0ec86139df8c26` and core
+`a4d6aa022fb1885a25a802a6e29372c81eac6c9f`; these do not replace active pins.
+Before live S3, resolve platform backend selection, C8 implementation ownership
+and the separate graph-capture dispatch branch. Offline snapshot conversion
+will reject unsupported semantics rather than invent a host hook.
+
+The completed source audit and owner-boundary request are in
+`docs/HOST_EXECUTION_AUDIT_20260905.md`. The bridge is
+`snapshot_reference.continuing_prefill_snapshot_reference`; it is intentionally
+not imported by normal discovery.
 
 ## Reproduced audit and disposition
 
