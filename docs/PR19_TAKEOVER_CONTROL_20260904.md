@@ -46,7 +46,8 @@ will reject unsupported semantics rather than invent a host hook.
 The completed source audit and owner-boundary request are in
 `docs/HOST_EXECUTION_AUDIT_20260905.md`. The bridge is
 `snapshot_reference.continuing_prefill_snapshot_reference`; it is intentionally
-not imported by normal discovery.
+not imported by normal discovery. The three explicit owner outcomes are in
+`docs/HOST_CONTRACT_PROPOSAL.md`; no new host contract name is claimed.
 
 ## Reproduced audit and disposition
 
