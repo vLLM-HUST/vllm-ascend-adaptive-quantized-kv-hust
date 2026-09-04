@@ -24,7 +24,7 @@ This work does not reopen PR #19 or modify a core host repository.
 | --- | --- | --- | --- |
 | S0 | Audit exact PR and reproduce admission/correctness gaps off-device | Record findings and disposition of every changed area | Complete |
 | S1 | Implement a standalone CPU tensor reference in this extension | Dense-reference agreement for grouped heads, variable lengths, non-unit scales, page order, causal masks and partial blocks; invalid inputs rejected | Complete; validation below |
-| S2 | Verify packaging and submit a student-authored Draft PR | Existing inert-package tests plus component tests, isolated build and CI; exact source attribution | In progress |
+| S2 | Verify packaging and submit a student-authored Draft PR | Existing inert-package tests plus component tests, isolated build and CI; exact source attribution | Complete: Draft #3; four CI jobs pass |
 | S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Blocked |
 | S4 | Run matched NPU component/service validation | Correctness, graph replay, provenance and resource gates pass before timing claims or matrix expansion | Blocked |
 
@@ -133,3 +133,18 @@ do not equate approval of an observer with approval of attention replacement.
   runtime dependencies remain empty; only the `component` extra pins Torch.
 - No NPU/SSH/service, host patch, PyPI release, graph acceptance, quality result
   or speedup claim is included. The parent v5 gate remains unchanged.
+
+### S2 receipt, 2026-09-05
+
+- Student implementation: `3fdbf47fee98a0d338c8b6bc2448e58a076819e0`.
+- [Owner-authored Draft PR #3](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/pull/3)
+  is open for review; the archived research PR #19 stays closed and unmerged.
+- [CI run 33895674890](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/actions/runs/33895674890)
+  passed CPU component (Python 3.12) and inert-package jobs on Python
+  3.10/3.12/3.14. Local full suite: **91 passed**, including 82 component cases.
+- The installed-wheel import check passed in an isolated no-Torch environment.
+  Local wheel SHA256:
+  `df90bf0ea8caff2fc6c4fed4b06c6811e950925c4417edd6efaaf798f6cab840`.
+- The S2 exit criterion is a tested Draft, not merged or active runtime code.
+  S3/S4 remain blocked: no NPU result, graph approval or D1 acceptance follows
+  from this receipt.
