@@ -5,6 +5,13 @@
 当前处于 P1 打包阶段，只提供 Extension Manager 0.2 实验性静态清单、宿主合同兼容性回执、
 ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主接口提案。
 
+另提供需要显式导入的 CPU 分页 INT8 attention 参考实现，承接研究仓已关闭 PR #19
+中的分块反量化与在线 softmax 思路。它支持 GQA、变长序列、per-channel scale
+和因果后缀查询，并以独立 dense 计算做数值对照；不是 Ascend 融合算子，也未接入服务。
+使用 Python 3.12 安装 `.[test,component]` 后运行 `pytest -q tests/test_reference.py`。
+默认安装和发现不会加载 Torch。接管范围、来源和阶段门禁见
+[`PR19_TAKEOVER_CONTROL_20260904.md`](docs/PR19_TAKEOVER_CONTROL_20260904.md)。
+
 当前版本不会自动激活运行时逻辑，不会 patch vLLM 或 vLLM Ascend，不会启动
 模型服务，也不声明性能收益。现有宿主基线尚未提供本插件需要的已评审接口，
 所以安装后保持惰性是有意设计的结果。

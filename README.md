@@ -17,7 +17,9 @@ This repository is at package stage P1. It provides:
 - fail-closed host-contract compatibility receipts;
 - typed validation of the retained ACL graph reset and recapture receipts;
 - the proposed generic host-contract boundary for continuing-prefill
-  observation and ACL graph lifecycle control.
+  observation and ACL graph lifecycle control;
+- an explicitly imported CPU-only paged INT8 attention reference, adapted from
+  archived advisor PR #19 in the research repository.
 
 It does not yet activate runtime behavior, patch vLLM or vLLM Ascend, launch a
 model service, or make a performance claim. The current host baselines do not
@@ -71,6 +73,34 @@ NPU result.
 The repository CI runs the tests on Python 3.10, 3.12, and 3.14. Python 3.12
 also builds the wheel and sdist, validates the inert extension boundary, and
 retains the validated distributions for 14 days. CI does not publish to PyPI.
+
+## Offline component reference
+
+The optional reference validates causal suffix attention with explicit 5D NZ
+INT8 pages, per-channel scales, grouped query heads and variable sequence
+lengths. It dequantizes one KV page at a time and tiles queries; these are
+source-level temporary-shape bounds, not measured HBM savings. Online softmax
+avoids a full-cache floating K/V copy but may reread pages for each query tile.
+It is ordinary Torch CPU code, not a fused Ascend operator or a runtime adapter.
+
+Use Python 3.12 for the tested component environment (the default inert package
+also supports the other Python versions in CI):
+
+```bash
+uv pip install -e ".[test,component]"
+.venv/bin/python -m pytest -q tests/test_reference.py
+```
+
+The explicit module is `vllm_ascend_adaptive_quantized_kv.reference`, exposing
+`paged_int8_attention_reference`. Its docstring specifies the input contract;
+`tests/test_reference.py` supplies executable input and dense-oracle examples.
+CPU FP64/FP32/FP16/BF16 agreement does not establish bitwise FIA equivalence,
+NPU correctness, graph safety, quality or end-to-end performance. Default
+discovery imports neither Torch nor the reference; the manifest remains inert.
+A separate Python 3.12 CI job requires CPU Torch and runs the component tests.
+
+Source attribution, reproduced old-code defects, and remaining integration
+decisions are tracked in [the takeover control](docs/PR19_TAKEOVER_CONTROL_20260904.md).
 
 ## Research evidence
 
