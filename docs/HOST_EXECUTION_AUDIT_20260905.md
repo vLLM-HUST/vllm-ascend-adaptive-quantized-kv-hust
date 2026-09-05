@@ -33,6 +33,43 @@ are audited rather than silently substituted for its exact host pins.
    general prefill paths: paged INT8 cache is gathered/dequantized, then TND FIA
    receives dense K/V with `block_table=None`. Decode remains a distinct native
    BNSD paged-INT8 path and is outside this replacement scope.
+6. The graph-capture C8 branch is not evidence of native continuing prefill. It
+   views paged NZ K/V, but reshapes Q with `unsqueeze(2)`, selects BNSD, clears
+   the attention mask and uses `sparse_mode=0`. This is a decode-shaped call;
+   source inspection alone does not prove whether multi-token continuing
+   prefill can reach it or whether it would be numerically valid.
+7. Replay update code repeats the BNSD C8 contract. The C8 decode, chunked
+   prefill and general prefill methods call `torch_npu` FIA directly, while
+   `DeviceOperator` is selected from a fixed hardware-family map. Therefore the
+   existing device adaptor is not a sufficient extension provider boundary.
+
+## Reproducible source receipt
+
+Run the audit without importing either host or starting a device runtime:
+
+```bash
+python scripts/audit_host_execution.py \
+  --core-repo /path/to/vllm-hust \
+  --ascend-repo /path/to/vllm-ascend-hust \
+  --output /path/to/new-receipt.json
+```
+
+The output is created exclusively so an earlier receipt cannot be overwritten.
+It records exact revisions, SHA256 for every inspected source blob, AST-derived
+symbol locations, source findings and explicit limits. If a required definition
+or source structure changes, the audit returns `INCONCLUSIVE` with exit code 2.
+The scan of two host test files reports only direct target-symbol references;
+it cannot establish that indirect coverage is absent.
+
+The retained run is
+[`docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json`](evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json),
+SHA256 `4e7ce1e659b3990a8ca58228f3314dc1c8a7ebe1ca46b29847a6f9446010ac86`.
+
+At the audited Ascend revision, `test_kv_c8.py` directly checks one
+`_dequant_paged_kv_to_dense` round trip. Neither scanned file directly
+references `_forward_c8_chunked_prefill` or `full_graph_fia`. The remaining
+test gap is therefore end-to-end dispatch and graph behavior, rather than the
+basic materializer conversion itself.
 
 ## Completed local bridge
 
@@ -70,6 +107,21 @@ behavior must be baseline-equivalent. It must also define whether mixed
 new/continuing batches are partitioned by the host or rejected by the provider.
 The extension must not replace implementation classes, import private graph
 registries or monkey-patch `forward`.
+
+The smallest host-owner implementation map is:
+
+1. Add one public, host-owned C8 execution-provider lookup after cache write and
+   before capture/non-capture dispatch. The host keeps eligibility, output and
+   fallback ownership.
+2. Define continuing-only metadata explicitly: active TND Q, query boundaries,
+   paged NZ K/V, block table, valid KV lengths, scales and quantization mode.
+   Preserve current decode and all-new prefill behavior. Mixed batches must have
+   a declared host partition or a provider rejection path.
+3. Carry provider identity and stable shape data into graph capture records, and
+   invoke the matching provider update during replay. A forward-only hook cannot
+   preserve capture semantics.
+4. Add host tests for non-capture output, capture/first replay/subsequent replay,
+   fallback equivalence and mixed-batch handling before enabling the extension.
 
 No contract identifier is claimed here. Issue #1 should resolve whether an
 existing interface satisfies this boundary or which owner-delivered route will

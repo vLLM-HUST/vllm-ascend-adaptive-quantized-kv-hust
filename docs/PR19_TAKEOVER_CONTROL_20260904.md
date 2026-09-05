@@ -26,6 +26,7 @@ This work does not reopen PR #19 or modify a core host repository.
 | S1 | Implement a standalone CPU tensor reference in this extension | Dense-reference agreement for grouped heads, variable lengths, non-unit scales, page order, causal masks and partial blocks; invalid inputs rejected | Complete; validation below |
 | S2 | Verify packaging and submit a student-authored Draft PR | Existing inert-package tests plus component tests, isolated build and CI; exact source attribution | Complete: Draft #3; four CI jobs pass |
 | S3a | Recheck host selection and bridge explicit CPU snapshots to the reference | Pinned source audit; cumulative-length/decode-prefix/NZ conversion tests | Complete: 122 total tests pass |
+| S3b | Freeze a reproducible read-only audit of C8 dispatch, capture/replay and dense fallback | Structured receipt records exact host revisions and hashes; source drift fails closed | Complete: 127 total tests pass |
 | S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Blocked |
 | S4 | Run matched NPU component/service validation | Correctness, graph replay, provenance and resource gates pass before timing claims or matrix expansion | Blocked |
 
@@ -48,6 +49,19 @@ The completed source audit and owner-boundary request are in
 `snapshot_reference.continuing_prefill_snapshot_reference`; it is intentionally
 not imported by normal discovery. The three explicit owner outcomes are in
 `docs/HOST_CONTRACT_PROPOSAL.md`; no new host contract name is claimed.
+
+S3b converts the manual host reading into a standard-library audit. It reads
+only the two exact candidate revisions, hashes every inspected blob, parses
+definitions with Python AST, and records a structured receipt. A changed or
+ambiguous source shape produces `INCONCLUSIVE` and a nonzero exit. The receipt
+does not claim runtime reachability, correctness or performance.
+
+The retained S3b receipt is
+`docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json`, SHA256
+`4e7ce1e659b3990a8ca58228f3314dc1c8a7ebe1ca46b29847a6f9446010ac86`.
+It records seven findings supported by the pinned source and the direct-symbol
+coverage found in the two scanned host test files. Local validation is 127
+tests plus Ruff and format checks.
 
 ## Reproduced audit and disposition
 

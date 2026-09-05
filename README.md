@@ -105,6 +105,9 @@ NZ storage, cumulative query ends, and decode/prefill metadata into reference
 inputs. It rejects ambiguous storage and unsupported semantics. It is not an
 NPU exporter or runtime adapter; see
 [`docs/HOST_EXECUTION_AUDIT_20260905.md`](docs/HOST_EXECUTION_AUDIT_20260905.md).
+That document links the retained read-only source-audit receipt and its exact
+host revisions; `scripts/audit_host_execution.py` reproduces it without
+importing host modules or starting a device runtime.
 
 Source attribution, reproduced old-code defects, and remaining integration
 decisions are tracked in [the takeover control](docs/PR19_TAKEOVER_CONTROL_20260904.md).
