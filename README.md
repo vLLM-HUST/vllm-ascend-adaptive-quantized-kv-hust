@@ -129,7 +129,9 @@ later V2 compatibility audit are mapped, with exact commits and hashes, in
 [`docs/PAGED_INT8_OPERATOR_EVIDENCE.md`](docs/PAGED_INT8_OPERATOR_EVIDENCE.md).
 The underlying experiments remain in the research carrier. Their narrow
 diagnostic failures prevent repeating known unsupported calls but do not prove
-universal CANN or hardware incapability.
+universal CANN or hardware incapability. The linked record is reproduced by
+`scripts/audit_parent_operator_evidence.py`, which reads only the frozen parent
+commits and fails closed on hash or semantic drift.
 
 ## Security and release
 

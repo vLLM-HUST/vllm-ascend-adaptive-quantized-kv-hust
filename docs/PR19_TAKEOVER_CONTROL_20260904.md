@@ -28,7 +28,7 @@ This work does not reopen PR #19 or modify a core host repository.
 | S3a | Recheck host selection and bridge explicit CPU snapshots to the reference | Pinned source audit; cumulative-length/decode-prefix/NZ conversion tests | Complete: 122 total tests pass |
 | S3b | Freeze a reproducible read-only audit of C8 dispatch, capture/replay and dense fallback | Structured receipt records exact host revisions and hashes; source drift fails closed | Complete: 127 total tests pass |
 | S3c | Re-audit newer host heads without moving the retained S3b baseline | Exact-revision parameters; additive receipt; changed-path and AST checks agree on the execution boundary | Complete: execution sources unchanged |
-| S3d | Reconcile retained paged-INT8 operator probes with the takeover | Exact parent commits and summary hashes recorded; diagnostic and claim boundaries determine which candidates must not be repeated | Complete: evidence mapped without copying experiments |
+| S3d | Reconcile retained paged-INT8 operator probes with the takeover | Exact parent commits and summary hashes recorded; a read-only audit reproduces their integrity and diagnostic boundaries | Complete: evidence mapped without copying experiments |
 | S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Blocked |
 | S4 | Run matched NPU component/service validation | Correctness, graph replay, provenance and resource gates pass before timing claims or matrix expansion | Blocked |
 
@@ -93,12 +93,15 @@ summaries retain hashes of raw remote receipts that are not present in Git.
 The V2 record is a no-execution compatibility audit. These facts prevent a
 duplicate unsupported implementation while preserving the narrow conclusion:
 they neither prove universal CANN/hardware incapability nor unblock S3.
-Validation remains 134 passing tests plus Ruff, format and diff checks. Two
-isolated builds were byte-identical; the wheel SHA256 is
-`fe8985b92518116b4e1bba2d2d601893188c61e3cdf93a49fa84689e2b6b24ff` and the
-sdist SHA256 is
-`adb21ce2361fcda9c741b637cc75b8c866ba0a40140a7b38942da507ffa19312`.
-Distribution validation reports `runtime_activation_present=false`.
+The read-only `scripts/audit_parent_operator_evidence.py` makes that mapping
+reproducible and fails closed on source, hash or semantic drift. Its retained
+receipt is
+`docs/evidence/PARENT_OPERATOR_EVIDENCE_AUDIT_20260905.json`, SHA256
+`e17e3a97e796bcaf578f447af15649b4777987b4dac89952f7374fa20dc94f0b`.
+Validation after S3d is 138 passing tests plus Ruff, format and diff checks.
+Two isolated builds are byte-identical and distribution validation reports
+`runtime_activation_present=false`. Distribution digests remain outside this
+source document because embedding them would make the package self-referential.
 
 ## Reproduced audit and disposition
 

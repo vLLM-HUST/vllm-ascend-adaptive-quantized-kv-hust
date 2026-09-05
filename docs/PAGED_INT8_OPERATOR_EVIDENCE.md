@@ -40,6 +40,26 @@ That audit binds its source facts to parent
 `8be03304c1657de2f5eb75de6b859d899e92bef5` and Ascend host
 `e2e1c96e3b2f040aaba06b8ba333070d19be4738`.
 
+## Reproducible integrity audit
+
+`scripts/audit_parent_operator_evidence.py` reads these files directly from
+the two exact parent commits with `git show`. It rejects non-exact revisions,
+hash drift, schema/status changes, changed pilot outcomes, changed raw-receipt
+hashes, or a V2 record that no longer declares its no-execution boundary. It
+does not fetch branches, import the parent runtime, or run an operator.
+
+```bash
+python scripts/audit_parent_operator_evidence.py \
+  --research-repo /path/to/ascend-adaptive-quantized-kv \
+  --output /path/to/new-exclusive-receipt.json
+```
+
+The output is created exclusively and an inconclusive audit exits with status
+2. The retained result is
+[`evidence/PARENT_OPERATOR_EVIDENCE_AUDIT_20260905.json`](evidence/PARENT_OPERATOR_EVIDENCE_AUDIT_20260905.json),
+SHA256 `e17e3a97e796bcaf578f447af15649b4777987b4dac89952f7374fa20dc94f0b`.
+It reports `SUPPORTED_BY_PINNED_SUMMARIES`, not runtime acceptance.
+
 ## Admissible findings
 
 1. On the pinned 2026-08-18 stack (`torch`/`torch_npu` 2.10.0 and
