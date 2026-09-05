@@ -45,8 +45,11 @@ That audit binds its source facts to parent
 `scripts/audit_parent_operator_evidence.py` reads these files directly from
 the two exact parent commits with `git show`. It rejects non-exact revisions,
 hash drift, schema/status changes, changed pilot outcomes, changed raw-receipt
-hashes, or a V2 record that no longer declares its no-execution boundary. It
-does not fetch branches, import the parent runtime, or run an operator.
+hashes, a V2 record that no longer declares its no-execution boundary, or a
+parent checkout whose GitHub origin names a different repository. Common
+HTTPS and SSH origins are normalized to the canonical repository identity so
+the receipt does not depend on the clone transport. The audit does not fetch
+branches, import the parent runtime, or run an operator.
 
 ```bash
 python scripts/audit_parent_operator_evidence.py \
@@ -57,7 +60,7 @@ python scripts/audit_parent_operator_evidence.py \
 The output is created exclusively and an inconclusive audit exits with status
 2. The retained result is
 [`evidence/PARENT_OPERATOR_EVIDENCE_AUDIT_20260905.json`](evidence/PARENT_OPERATOR_EVIDENCE_AUDIT_20260905.json),
-SHA256 `e17e3a97e796bcaf578f447af15649b4777987b4dac89952f7374fa20dc94f0b`.
+SHA256 `b9f28affb5c83b05ce448f9d3341ac42135d023817cec770e3348abb6097145b`.
 It reports `SUPPORTED_BY_PINNED_SUMMARIES`, not runtime acceptance.
 
 ## Admissible findings

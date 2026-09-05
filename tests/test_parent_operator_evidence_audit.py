@@ -1,6 +1,8 @@
 import hashlib
 import json
 
+import pytest
+
 from scripts import audit_parent_operator_evidence as audit
 
 
@@ -78,9 +80,7 @@ def _install_fixture(monkeypatch, *, mutate=None):
             path.removeprefix("fixture/").removesuffix(".json")
         ],
     )
-    monkeypatch.setattr(
-        audit, "_origin", lambda repo: "https://example.test/research.git"
-    )
+    monkeypatch.setattr(audit, "_origin", lambda repo: audit.PARENT_REPOSITORY)
     return blobs
 
 
@@ -129,3 +129,27 @@ def test_exclusive_receipt_write(monkeypatch, tmp_path):
         pass
     else:
         raise AssertionError("receipt writer overwrote an existing file")
+
+
+@pytest.mark.parametrize(
+    "origin",
+    (
+        "https://github.com/intellistream/ascend-adaptive-quantized-kv.git",
+        "git@github.com:intellistream/ascend-adaptive-quantized-kv.git",
+        "ssh://git@github.com/intellistream/ascend-adaptive-quantized-kv/",
+    ),
+)
+def test_parent_origin_is_clone_scheme_independent(origin):
+    assert audit._canonical_parent_repository(origin) == audit.PARENT_REPOSITORY
+
+
+def test_parent_origin_rejects_wrong_repository():
+    with pytest.raises(ValueError, match="unexpected parent origin"):
+        audit._canonical_parent_repository(
+            "https://github.com/example/ascend-adaptive-quantized-kv.git"
+        )
+
+
+def test_parent_origin_rejects_unsupported_transport():
+    with pytest.raises(ValueError, match="unsupported parent origin"):
+        audit._canonical_parent_repository("/tmp/ascend-adaptive-quantized-kv")

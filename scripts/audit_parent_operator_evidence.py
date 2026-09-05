@@ -12,7 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final
 
-SCHEMA_VERSION: Final = "adaptive-quantized-kv-parent-operator-audit/v1"
+SCHEMA_VERSION: Final = "adaptive-quantized-kv-parent-operator-audit/v2"
+PARENT_REPOSITORY: Final = "intellistream/ascend-adaptive-quantized-kv"
 M0_REVISION: Final = "69137e4e6bd08333707bb9c74241b2501c885eb0"
 M1_REVISION: Final = "c3d4c667b74479678e81a86598b3bd864b3d6955"
 PINNED_PARENT_SOURCE: Final = "8be03304c1657de2f5eb75de6b859d899e92bef5"
@@ -96,8 +97,31 @@ def _read_git_blob(repo: Path, revision: str, path: str) -> bytes:
     return _run_git(repo, "show", f"{revision}:{path}")
 
 
+def _canonical_parent_repository(origin: str) -> str:
+    value = origin.strip().rstrip("/")
+    patterns = (
+        r"https://github\.com/(?P<repository>[^?#]+)",
+        r"ssh://git@github\.com/(?P<repository>[^?#]+)",
+        r"git@github\.com:(?P<repository>[^?#]+)",
+    )
+    repository = None
+    for pattern in patterns:
+        match = re.fullmatch(pattern, value)
+        if match is not None:
+            repository = match.group("repository").removesuffix(".git")
+            break
+    if repository is None:
+        raise ValueError(f"unsupported parent origin: {origin!r}")
+    if repository.lower() != PARENT_REPOSITORY.lower():
+        raise ValueError(
+            f"unexpected parent origin: expected {PARENT_REPOSITORY}, got {repository}"
+        )
+    return PARENT_REPOSITORY
+
+
 def _origin(repo: Path) -> str:
-    return _run_git(repo, "remote", "get-url", "origin").decode().strip()
+    raw_origin = _run_git(repo, "remote", "get-url", "origin").decode()
+    return _canonical_parent_repository(raw_origin)
 
 
 def _expect(

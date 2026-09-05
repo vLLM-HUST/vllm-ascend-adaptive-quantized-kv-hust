@@ -50,11 +50,11 @@
     }
   ],
   "runtime_acceptance": false,
-  "schema_version": "adaptive-quantized-kv-parent-operator-audit/v1",
+  "schema_version": "adaptive-quantized-kv-parent-operator-audit/v2",
   "source": {
     "m0_revision": "69137e4e6bd08333707bb9c74241b2501c885eb0",
     "m1_revision": "c3d4c667b74479678e81a86598b3bd864b3d6955",
-    "origin": "https://github.com/intellistream/ascend-adaptive-quantized-kv.git"
+    "origin": "intellistream/ascend-adaptive-quantized-kv"
   },
   "status": "SUPPORTED_BY_PINNED_SUMMARIES"
 }

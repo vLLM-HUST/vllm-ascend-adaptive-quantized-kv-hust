@@ -94,11 +94,12 @@ The V2 record is a no-execution compatibility audit. These facts prevent a
 duplicate unsupported implementation while preserving the narrow conclusion:
 they neither prove universal CANN/hardware incapability nor unblock S3.
 The read-only `scripts/audit_parent_operator_evidence.py` makes that mapping
-reproducible and fails closed on source, hash or semantic drift. Its retained
-receipt is
+reproducible and fails closed on repository identity, hash or semantic drift.
+HTTPS and SSH clone origins normalize to the same canonical repository
+identity and produce byte-identical receipts. Its retained receipt is
 `docs/evidence/PARENT_OPERATOR_EVIDENCE_AUDIT_20260905.json`, SHA256
-`e17e3a97e796bcaf578f447af15649b4777987b4dac89952f7374fa20dc94f0b`.
-Validation after S3d is 138 passing tests plus Ruff, format and diff checks.
+`b9f28affb5c83b05ce448f9d3341ac42135d023817cec770e3348abb6097145b`.
+Validation after S3d is 143 passing tests plus Ruff, format and diff checks.
 Two isolated builds are byte-identical and distribution validation reports
 `runtime_activation_present=false`. Distribution digests remain outside this
 source document because embedding them would make the package self-referential.
