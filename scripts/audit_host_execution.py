@@ -7,14 +7,15 @@ import argparse
 import ast
 import hashlib
 import json
+import re
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-CORE_REVISION = "a4d6aa022fb1885a25a802a6e29372c81eac6c9f"
-ASCEND_REVISION = "2c8c722107a54127999a64c4eb0ec86139df8c26"
+DEFAULT_CORE_REVISION = "a4d6aa022fb1885a25a802a6e29372c81eac6c9f"
+DEFAULT_ASCEND_REVISION = "2c8c722107a54127999a64c4eb0ec86139df8c26"
 SCHEMA_VERSION = "vllm-ascend-c8-host-source-audit/v1"
 CORE_REPOSITORY = "vLLM-HUST/vllm-hust"
 ASCEND_REPOSITORY = "vLLM-HUST/vllm-ascend-hust"
@@ -31,6 +32,15 @@ ASCEND_C8_TEST = "tests/ut/quantization/methods/test_kv_c8.py"
 
 class AuditInconclusive(RuntimeError):
     """Raised when a pinned source no longer has the expected structure."""
+
+
+def require_exact_revision(revision: str) -> str:
+    """Reject branches, tags and abbreviated object names."""
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise AuditInconclusive(
+            f"revision must be a full lowercase 40-character commit SHA: {revision!r}"
+        )
+    return revision
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +76,7 @@ def load_source(
     revision: str,
     path: str,
 ) -> SourceUnit:
+    require_exact_revision(revision)
     resolved = _git(repo, "rev-parse", "--verify", f"{revision}^{{commit}}")
     if resolved.decode().strip() != revision:
         raise AuditInconclusive(f"revision did not resolve exactly: {revision}")
@@ -445,21 +456,29 @@ def analyze(units: dict[str, SourceUnit]) -> list[dict[str, Any]]:
     return findings
 
 
-def audit(core_repo: Path, ascend_repo: Path) -> dict[str, Any]:
+def audit(
+    core_repo: Path,
+    ascend_repo: Path,
+    *,
+    core_revision: str = DEFAULT_CORE_REVISION,
+    ascend_revision: str = DEFAULT_ASCEND_REVISION,
+) -> dict[str, Any]:
+    core_revision = require_exact_revision(core_revision)
+    ascend_revision = require_exact_revision(ascend_revision)
     specs = (
-        (core_repo, CORE_REPOSITORY, CORE_REVISION, CORE_REGISTRY),
-        (core_repo, CORE_REPOSITORY, CORE_REVISION, CORE_SELECTOR),
-        (ascend_repo, ASCEND_REPOSITORY, ASCEND_REVISION, ASCEND_PLATFORM),
-        (ascend_repo, ASCEND_REPOSITORY, ASCEND_REVISION, ASCEND_C8_METHOD),
-        (ascend_repo, ASCEND_REPOSITORY, ASCEND_REVISION, ASCEND_ATTENTION),
-        (ascend_repo, ASCEND_REPOSITORY, ASCEND_REVISION, ASCEND_DEVICE_OP),
+        (core_repo, CORE_REPOSITORY, core_revision, CORE_REGISTRY),
+        (core_repo, CORE_REPOSITORY, core_revision, CORE_SELECTOR),
+        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_PLATFORM),
+        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_C8_METHOD),
+        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_ATTENTION),
+        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_DEVICE_OP),
         (
             ascend_repo,
             ASCEND_REPOSITORY,
-            ASCEND_REVISION,
+            ascend_revision,
             ASCEND_ATTENTION_TEST,
         ),
-        (ascend_repo, ASCEND_REPOSITORY, ASCEND_REVISION, ASCEND_C8_TEST),
+        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_C8_TEST),
     )
     units = {
         path: load_source(repo, repository, revision, path)
@@ -508,10 +527,25 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core-repo", type=Path, required=True)
     parser.add_argument("--ascend-repo", type=Path, required=True)
+    parser.add_argument(
+        "--core-revision",
+        default=DEFAULT_CORE_REVISION,
+        help="full core commit SHA (defaults to the retained S3b candidate)",
+    )
+    parser.add_argument(
+        "--ascend-revision",
+        default=DEFAULT_ASCEND_REVISION,
+        help="full Ascend commit SHA (defaults to the retained S3b candidate)",
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        result = audit(args.core_repo, args.ascend_repo)
+        result = audit(
+            args.core_repo,
+            args.ascend_repo,
+            core_revision=args.core_revision,
+            ascend_revision=args.ascend_revision,
+        )
     except (
         AuditInconclusive,
         subprocess.CalledProcessError,
@@ -524,6 +558,10 @@ def main() -> int:
             "runtime_compatible": None,
             "npu_started": False,
             "performance_claim": False,
+            "requested_revisions": {
+                CORE_REPOSITORY: args.core_revision,
+                ASCEND_REPOSITORY: args.ascend_revision,
+            },
             "error": str(error),
         }
         exit_code = 2

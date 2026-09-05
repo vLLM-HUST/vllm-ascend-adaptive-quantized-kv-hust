@@ -27,6 +27,7 @@ This work does not reopen PR #19 or modify a core host repository.
 | S2 | Verify packaging and submit a student-authored Draft PR | Existing inert-package tests plus component tests, isolated build and CI; exact source attribution | Complete: Draft #3; four CI jobs pass |
 | S3a | Recheck host selection and bridge explicit CPU snapshots to the reference | Pinned source audit; cumulative-length/decode-prefix/NZ conversion tests | Complete: 122 total tests pass |
 | S3b | Freeze a reproducible read-only audit of C8 dispatch, capture/replay and dense fallback | Structured receipt records exact host revisions and hashes; source drift fails closed | Complete: 127 total tests pass |
+| S3c | Re-audit newer host heads without moving the retained S3b baseline | Exact-revision parameters; additive receipt; changed-path and AST checks agree on the execution boundary | Complete: execution sources unchanged |
 | S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Blocked |
 | S4 | Run matched NPU component/service validation | Correctness, graph replay, provenance and resource gates pass before timing claims or matrix expansion | Blocked |
 
@@ -62,6 +63,26 @@ The retained S3b receipt is
 It records seven findings supported by the pinned source and the direct-symbol
 coverage found in the two scanned host test files. Local validation is 127
 tests plus Ruff and format checks.
+
+S3c keeps those defaults and that receipt immutable while allowing a caller to
+name newer full 40-character commit SHAs explicitly. Branch names, tags,
+abbreviated SHAs and uppercase object names are rejected. Each refresh writes a
+new receipt and reruns the same structural checks; unrelated repository changes
+therefore do not silently move the evidence baseline or create a false host-API
+claim.
+
+The 2026-09-05 refresh audited core
+`88cca78bbc92e9113067cb62252c5d8ae2bbdd06` and Ascend
+`d0433ba3aeb3b6643787177d7b1fefe4c742ef6e`. The intervening core change is
+limited to scheduler/preemption files, and the Ascend change is limited to MoE
+offload metadata. All eight inspected execution/test blobs have the same
+SHA256 values as S3b, and all seven structural findings reproduce. The additive
+receipt is
+`docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_MAIN_REFRESH_20260905.json`, SHA256
+`9332fd8ede32c52a40f0f2cd1f35a02e445a3eca6a7f2f8934ac1062af0ac3cd`.
+No public C8 execution boundary appeared, so S3 remains blocked. Local
+validation after S3c is 134 tests plus Ruff, format, diff and isolated
+distribution checks; the built wheel remains inert.
 
 ## Reproduced audit and disposition
 

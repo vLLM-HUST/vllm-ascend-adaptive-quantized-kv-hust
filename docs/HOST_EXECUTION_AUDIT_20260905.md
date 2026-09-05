@@ -54,6 +54,18 @@ python scripts/audit_host_execution.py \
   --output /path/to/new-receipt.json
 ```
 
+The retained S3b revisions above remain the defaults. To audit newer fetched
+commits without changing that baseline, pass both exact 40-character SHAs:
+
+```bash
+python scripts/audit_host_execution.py \
+  --core-repo /path/to/vllm-hust \
+  --ascend-repo /path/to/vllm-ascend-hust \
+  --core-revision <full-core-sha> \
+  --ascend-revision <full-ascend-sha> \
+  --output /path/to/additive-refresh-receipt.json
+```
+
 The output is created exclusively so an earlier receipt cannot be overwritten.
 It records exact revisions, SHA256 for every inspected source blob, AST-derived
 symbol locations, source findings and explicit limits. If a required definition
@@ -64,6 +76,24 @@ it cannot establish that indirect coverage is absent.
 The retained run is
 [`docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json`](evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json),
 SHA256 `4e7ce1e659b3990a8ca58228f3314dc1c8a7ebe1ca46b29847a6f9446010ac86`.
+
+## Latest-main refresh
+
+On 2026-09-05 the same audit was run against fetched core
+`88cca78bbc92e9113067cb62252c5d8ae2bbdd06` and Ascend
+`d0433ba3aeb3b6643787177d7b1fefe4c742ef6e`. Compared with the retained S3b
+inputs, core changed only scheduler/preemption files and Ascend changed only
+MoE offload metadata. None of the eight inspected execution or test files
+changed; their blob hashes are identical to S3b. The AST audit independently
+reconfirmed all seven findings, including dense continuing-prefill
+materialization and decode-shaped C8 capture/replay.
+
+The additive receipt is
+[`docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_MAIN_REFRESH_20260905.json`](evidence/HOST_EXECUTION_SOURCE_AUDIT_MAIN_REFRESH_20260905.json),
+SHA256 `9332fd8ede32c52a40f0f2cd1f35a02e445a3eca6a7f2f8934ac1062af0ac3cd`.
+This refresh does not move the parent gate, activate the extension or establish
+runtime compatibility. It confirms that the owner decision described below is
+still required at these newer repository heads.
 
 At the audited Ascend revision, `test_kv_c8.py` directly checks one
 `_dequant_paged_kv_to_dense` round trip. Neither scanned file directly

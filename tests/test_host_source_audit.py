@@ -14,6 +14,7 @@ from scripts.audit_host_execution import (
     has_class_rewrite,
     literal_assignments,
     loaded_name_count,
+    require_exact_revision,
 )
 
 
@@ -86,3 +87,25 @@ def capture(query):
     }
     assert len(calls_with_suffix(function, "unsqueeze")) == 1
     assert calls_with_suffix(function, "fake_call") == []
+
+
+@pytest.mark.parametrize(
+    "revision",
+    [
+        "origin/main",
+        "a4d6aa0",
+        "A" * 40,
+        "g" * 40,
+        "a" * 39,
+        "a" * 41,
+    ],
+)
+def test_revision_must_be_a_full_lowercase_commit_sha(revision: str) -> None:
+    with pytest.raises(AuditInconclusive):
+        require_exact_revision(revision)
+
+
+def test_full_lowercase_commit_sha_is_accepted() -> None:
+    revision = "0123456789abcdef0123456789abcdef01234567"
+
+    assert require_exact_revision(revision) == revision

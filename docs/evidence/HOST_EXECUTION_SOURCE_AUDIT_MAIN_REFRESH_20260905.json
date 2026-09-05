@@ -1,0 +1,219 @@
+{
+  "classification": "read-only-pinned-source-audit",
+  "direct_target_symbol_references_in_scanned_tests": {
+    "tests/ut/attention/test_attention_v1.py": {
+      "_dequant_paged_kv_to_dense": 0,
+      "_forward_c8_chunked_prefill": 0,
+      "full_graph_fia": 0
+    },
+    "tests/ut/quantization/methods/test_kv_c8.py": {
+      "_dequant_paged_kv_to_dense": 2,
+      "_forward_c8_chunked_prefill": 0,
+      "full_graph_fia": 0
+    }
+  },
+  "findings": [
+    {
+      "evidence": [
+        {
+          "blob_sha256": "0887a730a0c18696f4bf8edb2b7802b4ccb3ce69d18ec57a51eac9849708ee55",
+          "end_line": 300,
+          "path": "vllm/v1/attention/backends/registry.py",
+          "start_line": 248,
+          "symbol": "register_backend"
+        },
+        {
+          "blob_sha256": "9d000d386f95264f04ed84b4c746d8239603fef232444680f0caa9d9aa5419fb",
+          "end_line": 212,
+          "path": "vllm/v1/attention/selector.py",
+          "start_line": 195,
+          "symbol": "_cached_get_attn_backend"
+        },
+        {
+          "blob_sha256": "53f618a72de8ed18129a685ad5fbd05f57f664c884333bd39a679aa8cb8b8a62",
+          "end_line": 263,
+          "path": "vllm_ascend/platform.py",
+          "start_line": 221,
+          "symbol": "NPUPlatform.get_attn_backend_cls"
+        }
+      ],
+      "id": "backend-selection",
+      "status": "confirmed-in-pinned-source",
+      "summary": "Core CUSTOM registration still delegates selection to Ascend, whose candidate selector does not consume selected_backend and returns fixed maps."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "1e85e37adbf497f934642ec80823cef566010806f3a930b53a1ef914e561b78f",
+          "end_line": 139,
+          "path": "vllm_ascend/quantization/methods/kv_cache/kv_c8.py",
+          "start_line": 119,
+          "symbol": "AscendC8KVCacheAttentionMethod.create_weights"
+        }
+      ],
+      "id": "c8-implementation-ownership",
+      "status": "confirmed-in-pinned-source",
+      "summary": "C8 weight setup replaces layer.impl.__class__ with the host C8 subclass."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 1937,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 1848,
+          "symbol": "AscendC8AttentionBackendImpl.forward"
+        }
+      ],
+      "id": "capture-dispatch-order",
+      "status": "confirmed-in-pinned-source",
+      "summary": "C8 capture returns through full_graph_fia before the ChunkedPrefill branch."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 1140,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 970,
+          "symbol": "AscendAttentionBackendImpl.full_graph_fia"
+        }
+      ],
+      "id": "capture-is-decode-shaped",
+      "status": "confirmed-in-pinned-source",
+      "summary": "The C8 graph branch uses paged NZ K/V but reshapes Q with unsqueeze(2), selects BNSD, clears the mask and sets sparse_mode=0. This is decode-shaped and does not establish native multi-token continuing-prefill support."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 965,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 596,
+          "symbol": "AscendAttentionBackendImpl.update_graph_params"
+        }
+      ],
+      "id": "capture-replay-coupling",
+      "status": "confirmed-in-pinned-source",
+      "summary": "Graph replay updates repeat the C8 BNSD/sparse_mode=0 contract, so a host provider boundary must cover capture records and replay updates."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 2025,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 1979,
+          "symbol": "AscendC8AttentionBackendImpl._dequant_paged_kv_to_dense"
+        },
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 2187,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 2088,
+          "symbol": "AscendC8AttentionBackendImpl._forward_c8_chunked_prefill"
+        }
+      ],
+      "id": "dense-materialization",
+      "status": "confirmed-in-pinned-source",
+      "summary": "Continuing prefill gathers paged INT8 blocks, materializes dense K/V, and calls TND FIA with block_table=None."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 2086,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 2050,
+          "symbol": "AscendC8AttentionBackendImpl._forward_c8_decode"
+        },
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 2187,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 2088,
+          "symbol": "AscendC8AttentionBackendImpl._forward_c8_chunked_prefill"
+        },
+        {
+          "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+          "end_line": 2246,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 2189,
+          "symbol": "AscendC8AttentionBackendImpl._forward_c8_fused_infer_attention"
+        },
+        {
+          "blob_sha256": "c64dc4f693da5c537315fb66c9dd121b16be4ef9a7eaaae45390d1871760ba1d",
+          "end_line": 1593,
+          "path": "vllm_ascend/device/device_op.py",
+          "start_line": 1587,
+          "symbol": "get_device_adaptor"
+        }
+      ],
+      "id": "device-adaptor-is-not-c8-provider",
+      "status": "confirmed-in-pinned-source",
+      "summary": "The audited C8 methods call torch_npu FIA directly. DeviceOperator is selected from a hardware-family map and is not their provider boundary."
+    }
+  ],
+  "generated_at": "2026-09-05T10:53:03.163046+00:00",
+  "limitations": [
+    "No host module was imported and no runtime or NPU path was executed.",
+    "Branch reachability and numerical behavior remain unproven.",
+    "The two scanned test files cannot prove the absence of indirect coverage.",
+    "Candidate source revisions do not replace the active parent gate pins."
+  ],
+  "npu_started": false,
+  "performance_claim": false,
+  "runtime_compatible": null,
+  "schema_version": "vllm-ascend-c8-host-source-audit/v1",
+  "source_audit_status": "SUPPORTED_BY_PINNED_SOURCE",
+  "sources": [
+    {
+      "blob_sha256": "0887a730a0c18696f4bf8edb2b7802b4ccb3ce69d18ec57a51eac9849708ee55",
+      "path": "vllm/v1/attention/backends/registry.py",
+      "repository": "vLLM-HUST/vllm-hust",
+      "revision": "88cca78bbc92e9113067cb62252c5d8ae2bbdd06"
+    },
+    {
+      "blob_sha256": "9d000d386f95264f04ed84b4c746d8239603fef232444680f0caa9d9aa5419fb",
+      "path": "vllm/v1/attention/selector.py",
+      "repository": "vLLM-HUST/vllm-hust",
+      "revision": "88cca78bbc92e9113067cb62252c5d8ae2bbdd06"
+    },
+    {
+      "blob_sha256": "53f618a72de8ed18129a685ad5fbd05f57f664c884333bd39a679aa8cb8b8a62",
+      "path": "vllm_ascend/platform.py",
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "revision": "d0433ba3aeb3b6643787177d7b1fefe4c742ef6e"
+    },
+    {
+      "blob_sha256": "1e85e37adbf497f934642ec80823cef566010806f3a930b53a1ef914e561b78f",
+      "path": "vllm_ascend/quantization/methods/kv_cache/kv_c8.py",
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "revision": "d0433ba3aeb3b6643787177d7b1fefe4c742ef6e"
+    },
+    {
+      "blob_sha256": "48376a70ce2954bd12d08ba7a2078a0cb69faaf47e5e1c6baf6d348956981043",
+      "path": "vllm_ascend/attention/attention_v1.py",
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "revision": "d0433ba3aeb3b6643787177d7b1fefe4c742ef6e"
+    },
+    {
+      "blob_sha256": "c64dc4f693da5c537315fb66c9dd121b16be4ef9a7eaaae45390d1871760ba1d",
+      "path": "vllm_ascend/device/device_op.py",
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "revision": "d0433ba3aeb3b6643787177d7b1fefe4c742ef6e"
+    },
+    {
+      "blob_sha256": "1fd8e71fb7fc5b4450944caca724c40a97b51ecd2a18175612f3e71e968f66d2",
+      "path": "tests/ut/attention/test_attention_v1.py",
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "revision": "d0433ba3aeb3b6643787177d7b1fefe4c742ef6e"
+    },
+    {
+      "blob_sha256": "277f3e9a0ab1bc8185fb378eb090bdc9561193b3a9dc0fadbe23d868919eb7ad",
+      "path": "tests/ut/quantization/methods/test_kv_c8.py",
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "revision": "d0433ba3aeb3b6643787177d7b1fefe4c742ef6e"
+    }
+  ]
+}
