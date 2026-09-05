@@ -158,3 +158,19 @@ existing interface satisfies this boundary or which owner-delivered route will
 provide it. After that decision, the next implementation is a minimal adapter
 to the owner API followed by CPU contract tests, NPU correctness, graph
 capture/replay, cleanup, and only then matched performance measurement.
+
+## Retained operator-feasibility boundary
+
+The parent research carrier already tested two narrower native-operator
+candidates on its pinned 910B2 stack. Raw 5D NZ paged INT8 K/V failed the
+multi-token dimension gate; an NZ-to-4D-ND repack then failed paged prompt
+antiquantization validation. A later read-only V2 audit also found that the
+documented special case did not directly cover the observed Qwen3-14B head
+pair or query lengths. Exact commits, summary hashes, raw-receipt limitations
+and admissible conclusions are indexed in
+[`PAGED_INT8_OPERATOR_EVIDENCE.md`](PAGED_INT8_OPERATOR_EVIDENCE.md).
+
+Those findings rule out repeating the same calls on the same stack, not every
+future CANN or custom-kernel route. They also do not remove the host-interface
+requirement above: even a capable operator still needs host-owned eligibility,
+fallback, capture and replay integration.

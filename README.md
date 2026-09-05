@@ -124,6 +124,13 @@ listed in
 references are boundary evidence only and do not activate the extension or
 support a performance claim.
 
+The historical 910B2 paged-INT8 continuing-prefill capability probes and the
+later V2 compatibility audit are mapped, with exact commits and hashes, in
+[`docs/PAGED_INT8_OPERATOR_EVIDENCE.md`](docs/PAGED_INT8_OPERATOR_EVIDENCE.md).
+The underlying experiments remain in the research carrier. Their narrow
+diagnostic failures prevent repeating known unsupported calls but do not prove
+universal CANN or hardware incapability.
+
 ## Security and release
 
 - Installation never enables the extension.
