@@ -154,7 +154,6 @@
       "summary": "The audited C8 methods call torch_npu FIA directly. DeviceOperator is selected from a hardware-family map and is not their provider boundary."
     }
   ],
-  "generated_at": "2026-09-05T10:53:03.163046+00:00",
   "limitations": [
     "No host module was imported and no runtime or NPU path was executed.",
     "Branch reachability and numerical behavior remain unproven.",
@@ -164,7 +163,7 @@
   "npu_started": false,
   "performance_claim": false,
   "runtime_compatible": null,
-  "schema_version": "vllm-ascend-c8-host-source-audit/v1",
+  "schema_version": "vllm-ascend-c8-host-source-audit/v2",
   "source_audit_status": "SUPPORTED_BY_PINNED_SOURCE",
   "sources": [
     {

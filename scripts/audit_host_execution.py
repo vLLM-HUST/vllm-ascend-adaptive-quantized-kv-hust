@@ -10,13 +10,12 @@ import json
 import re
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 DEFAULT_CORE_REVISION = "a4d6aa022fb1885a25a802a6e29372c81eac6c9f"
 DEFAULT_ASCEND_REVISION = "2c8c722107a54127999a64c4eb0ec86139df8c26"
-SCHEMA_VERSION = "vllm-ascend-c8-host-source-audit/v1"
+SCHEMA_VERSION = "vllm-ascend-c8-host-source-audit/v2"
 CORE_REPOSITORY = "vLLM-HUST/vllm-hust"
 ASCEND_REPOSITORY = "vLLM-HUST/vllm-ascend-hust"
 
@@ -68,6 +67,33 @@ def _git(repo: Path, *args: str) -> bytes:
         capture_output=True,
         timeout=30,
     ).stdout
+
+
+def canonical_repository_origin(origin: str, expected: str) -> str:
+    value = origin.strip().rstrip("/")
+    patterns = (
+        r"https://github\.com/(?P<repository>[^?#]+)",
+        r"ssh://git@github\.com/(?P<repository>[^?#]+)",
+        r"git@github\.com:(?P<repository>[^?#]+)",
+    )
+    repository = None
+    for pattern in patterns:
+        match = re.fullmatch(pattern, value)
+        if match is not None:
+            repository = match.group("repository").removesuffix(".git")
+            break
+    if repository is None:
+        raise AuditInconclusive(f"unsupported GitHub origin: {origin!r}")
+    if repository.lower() != expected.lower():
+        raise AuditInconclusive(
+            f"unexpected repository origin: expected {expected}, got {repository}"
+        )
+    return expected
+
+
+def repository_origin(repo: Path, expected: str) -> str:
+    raw_origin = _git(repo, "remote", "get-url", "origin").decode()
+    return canonical_repository_origin(raw_origin, expected)
 
 
 def load_source(
@@ -465,20 +491,22 @@ def audit(
 ) -> dict[str, Any]:
     core_revision = require_exact_revision(core_revision)
     ascend_revision = require_exact_revision(ascend_revision)
+    core_repository = repository_origin(core_repo, CORE_REPOSITORY)
+    ascend_repository = repository_origin(ascend_repo, ASCEND_REPOSITORY)
     specs = (
-        (core_repo, CORE_REPOSITORY, core_revision, CORE_REGISTRY),
-        (core_repo, CORE_REPOSITORY, core_revision, CORE_SELECTOR),
-        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_PLATFORM),
-        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_C8_METHOD),
-        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_ATTENTION),
-        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_DEVICE_OP),
+        (core_repo, core_repository, core_revision, CORE_REGISTRY),
+        (core_repo, core_repository, core_revision, CORE_SELECTOR),
+        (ascend_repo, ascend_repository, ascend_revision, ASCEND_PLATFORM),
+        (ascend_repo, ascend_repository, ascend_revision, ASCEND_C8_METHOD),
+        (ascend_repo, ascend_repository, ascend_revision, ASCEND_ATTENTION),
+        (ascend_repo, ascend_repository, ascend_revision, ASCEND_DEVICE_OP),
         (
             ascend_repo,
-            ASCEND_REPOSITORY,
+            ascend_repository,
             ascend_revision,
             ASCEND_ATTENTION_TEST,
         ),
-        (ascend_repo, ASCEND_REPOSITORY, ascend_revision, ASCEND_C8_TEST),
+        (ascend_repo, ascend_repository, ascend_revision, ASCEND_C8_TEST),
     )
     units = {
         path: load_source(repo, repository, revision, path)
@@ -498,7 +526,6 @@ def audit(
     return {
         "schema_version": SCHEMA_VERSION,
         "classification": "read-only-pinned-source-audit",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
         "source_audit_status": "SUPPORTED_BY_PINNED_SOURCE",
         "runtime_compatible": None,
         "npu_started": False,

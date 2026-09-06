@@ -7,8 +7,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.audit_host_execution import (
+    ASCEND_REPOSITORY,
+    CORE_REPOSITORY,
     AuditInconclusive,
     calls_with_suffix,
+    canonical_repository_origin,
     find_if,
     find_qualified_def,
     has_class_rewrite,
@@ -109,3 +112,27 @@ def test_full_lowercase_commit_sha_is_accepted() -> None:
     revision = "0123456789abcdef0123456789abcdef01234567"
 
     assert require_exact_revision(revision) == revision
+
+
+@pytest.mark.parametrize(
+    ("origin", "expected"),
+    (
+        ("https://github.com/vLLM-HUST/vllm-hust.git", CORE_REPOSITORY),
+        ("git@github.com:vLLM-HUST/vllm-ascend-hust.git", ASCEND_REPOSITORY),
+        ("ssh://git@github.com/vLLM-HUST/vllm-hust/", CORE_REPOSITORY),
+    ),
+)
+def test_repository_origin_is_clone_scheme_independent(origin, expected) -> None:
+    assert canonical_repository_origin(origin, expected) == expected
+
+
+def test_repository_origin_rejects_wrong_repository() -> None:
+    with pytest.raises(AuditInconclusive, match="unexpected repository origin"):
+        canonical_repository_origin(
+            "https://github.com/example/vllm-hust.git", CORE_REPOSITORY
+        )
+
+
+def test_repository_origin_rejects_unsupported_transport() -> None:
+    with pytest.raises(AuditInconclusive, match="unsupported GitHub origin"):
+        canonical_repository_origin("/tmp/vllm-hust", CORE_REPOSITORY)

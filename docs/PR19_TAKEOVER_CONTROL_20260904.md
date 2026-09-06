@@ -29,6 +29,7 @@ This work does not reopen PR #19 or modify a core host repository.
 | S3b | Freeze a reproducible read-only audit of C8 dispatch, capture/replay and dense fallback | Structured receipt records exact host revisions and hashes; source drift fails closed | Complete: 127 total tests pass |
 | S3c | Re-audit newer host heads without moving the retained S3b baseline | Exact-revision parameters; additive receipt; changed-path and AST checks agree on the execution boundary | Complete: execution sources unchanged |
 | S3d | Reconcile retained paged-INT8 operator probes with the takeover | Exact parent commits and summary hashes recorded; a read-only audit reproduces their integrity and diagnostic boundaries | Complete: evidence mapped without copying experiments |
+| S3e | Make host-source receipts repository-bound and deterministic | Expected GitHub origins required; HTTPS/SSH runs at the same revisions are byte-identical | Complete: no runtime or NPU work |
 | S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Blocked |
 | S4 | Run matched NPU component/service validation | Correctness, graph replay, provenance and resource gates pass before timing claims or matrix expansion | Blocked |
 
@@ -60,7 +61,7 @@ does not claim runtime reachability, correctness or performance.
 
 The retained S3b receipt is
 `docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json`, SHA256
-`4e7ce1e659b3990a8ca58228f3314dc1c8a7ebe1ca46b29847a6f9446010ac86`.
+`66239bc0d03e59bce9297c2162ce74289c55472b4bcaf4ece4c60cf0132794df`.
 It records seven findings supported by the pinned source and the direct-symbol
 coverage found in the two scanned host test files. Local validation is 127
 tests plus Ruff and format checks.
@@ -80,7 +81,7 @@ offload metadata. All eight inspected execution/test blobs have the same
 SHA256 values as S3b, and all seven structural findings reproduce. The additive
 receipt is
 `docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_MAIN_REFRESH_20260905.json`, SHA256
-`9332fd8ede32c52a40f0f2cd1f35a02e445a3eca6a7f2f8934ac1062af0ac3cd`.
+`7653b79f7362ee7438c33a5660e06b789256aa255d35006fe06524788b2ada04`.
 No public C8 execution boundary appeared, so S3 remains blocked. Local
 validation after S3c is 134 tests plus Ruff, format, diff and isolated
 distribution checks; the built wheel remains inert.
@@ -103,6 +104,14 @@ Validation after S3d is 143 passing tests plus Ruff, format and diff checks.
 Two isolated builds are byte-identical and distribution validation reports
 `runtime_activation_present=false`. Distribution digests remain outside this
 source document because embedding them would make the package self-referential.
+
+S3e removes the host audit's wall-clock field and verifies the canonical
+GitHub identity of both source checkouts before reading any blob. The retained
+S3b and S3c receipts were regenerated under schema v2, then reproduced through
+separate SSH-origin repositories backed by the same exact objects. Each pair
+is byte-identical. Validation after S3e is 148 passing tests plus Ruff, format
+and diff checks. This strengthens attribution and reproducibility only; it does
+not change any source finding or unblock S3/S4.
 
 ## Reproduced audit and disposition
 

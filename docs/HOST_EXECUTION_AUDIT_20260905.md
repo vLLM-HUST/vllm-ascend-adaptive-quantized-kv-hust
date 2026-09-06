@@ -67,15 +67,19 @@ python scripts/audit_host_execution.py \
 ```
 
 The output is created exclusively so an earlier receipt cannot be overwritten.
-It records exact revisions, SHA256 for every inspected source blob, AST-derived
-symbol locations, source findings and explicit limits. If a required definition
-or source structure changes, the audit returns `INCONCLUSIVE` with exit code 2.
-The scan of two host test files reports only direct target-symbol references;
-it cannot establish that indirect coverage is absent.
+Before reading source, the audit requires the two checkouts to identify the
+expected GitHub repositories. Common HTTPS and SSH origins normalize to the
+same canonical identities. The deterministic output records exact revisions,
+SHA256 for every inspected source blob, AST-derived symbol locations, source
+findings and explicit limits; it contains no wall-clock generation field. If a
+repository identity, required definition or source structure changes, the
+audit returns `INCONCLUSIVE` with exit code 2. The scan of two host test files
+reports only direct target-symbol references; it cannot establish that
+indirect coverage is absent.
 
 The retained run is
 [`docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json`](evidence/HOST_EXECUTION_SOURCE_AUDIT_20260905.json),
-SHA256 `4e7ce1e659b3990a8ca58228f3314dc1c8a7ebe1ca46b29847a6f9446010ac86`.
+SHA256 `66239bc0d03e59bce9297c2162ce74289c55472b4bcaf4ece4c60cf0132794df`.
 
 ## Latest-main refresh
 
@@ -90,7 +94,7 @@ materialization and decode-shaped C8 capture/replay.
 
 The additive receipt is
 [`docs/evidence/HOST_EXECUTION_SOURCE_AUDIT_MAIN_REFRESH_20260905.json`](evidence/HOST_EXECUTION_SOURCE_AUDIT_MAIN_REFRESH_20260905.json),
-SHA256 `9332fd8ede32c52a40f0f2cd1f35a02e445a3eca6a7f2f8934ac1062af0ac3cd`.
+SHA256 `7653b79f7362ee7438c33a5660e06b789256aa255d35006fe06524788b2ada04`.
 This refresh does not move the parent gate, activate the extension or establish
 runtime compatibility. It confirms that the owner decision described below is
 still required at these newer repository heads.
