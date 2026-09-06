@@ -109,7 +109,7 @@ S3e removes the host audit's wall-clock field and verifies the canonical
 GitHub identity of both source checkouts before reading any blob. The retained
 S3b and S3c receipts were regenerated under schema v2, then reproduced through
 separate SSH-origin repositories backed by the same exact objects. Each pair
-is byte-identical. Validation after S3e is 148 passing tests plus Ruff, format
+is byte-identical. Validation after S3e is 149 passing tests plus Ruff, format
 and diff checks. This strengthens attribution and reproducibility only; it does
 not change any source finding or unblock S3/S4.
 

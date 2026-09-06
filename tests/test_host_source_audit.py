@@ -6,6 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts import audit_host_execution as host_audit
 from scripts.audit_host_execution import (
     ASCEND_REPOSITORY,
     CORE_REPOSITORY,
@@ -136,3 +137,31 @@ def test_repository_origin_rejects_wrong_repository() -> None:
 def test_repository_origin_rejects_unsupported_transport() -> None:
     with pytest.raises(AuditInconclusive, match="unsupported GitHub origin"):
         canonical_repository_origin("/tmp/vllm-hust", CORE_REPOSITORY)
+
+
+def test_success_receipt_is_deterministic(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(
+        host_audit, "repository_origin", lambda repo, expected: expected
+    )
+    monkeypatch.setattr(
+        host_audit,
+        "load_source",
+        lambda repo, repository, revision, path: host_audit.SourceUnit(
+            repository=repository,
+            revision=revision,
+            path=path,
+            text="",
+            sha256=f"sha256:{path}",
+        ),
+    )
+    monkeypatch.setattr(host_audit, "analyze", lambda units: [])
+
+    first = host_audit.audit(tmp_path / "core", tmp_path / "ascend")
+    second = host_audit.audit(tmp_path / "core", tmp_path / "ascend")
+
+    assert first == second
+    assert "generated_at" not in first
+    assert {source["repository"] for source in first["sources"]} == {
+        CORE_REPOSITORY,
+        ASCEND_REPOSITORY,
+    }
