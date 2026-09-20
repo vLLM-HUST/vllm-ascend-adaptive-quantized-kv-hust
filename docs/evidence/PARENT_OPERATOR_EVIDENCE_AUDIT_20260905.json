@@ -1,0 +1,60 @@
+{
+  "claim_limits": [
+    "Raw remote receipts are not present in Git and are not reconstructed by this audit.",
+    "No NPU, operator, service, correctness, graph, quality, or performance execution is performed.",
+    "The records do not prove universal CANN or Ascend hardware incapability.",
+    "The records do not provide or approve a host execution interface."
+  ],
+  "classification": "read-only-pinned-summary-integrity-audit",
+  "errors": [],
+  "findings": [
+    "The two 910B2 pilot summaries remain PILOT_DIAGNOSTIC and retain their raw remote receipt hashes.",
+    "The raw-NZ and ND-repack candidates failed before numerical or timing comparison.",
+    "The V2 record remains a no-execution audit with no direct documented coverage for the archived workload."
+  ],
+  "records": [
+    {
+      "expected_sha256": "5dedf67b28e68741f36f5a0e3124c34e702cc78599fcced6b32bef0a04fc6e76",
+      "identifier": "probe_contract",
+      "path": "artifacts/m0/paged-int8-prefill-probe-contract-20260818.json",
+      "revision": "69137e4e6bd08333707bb9c74241b2501c885eb0",
+      "sha256": "5dedf67b28e68741f36f5a0e3124c34e702cc78599fcced6b32bef0a04fc6e76"
+    },
+    {
+      "expected_sha256": "97d11c02fb7d6294422903a4461ed6069781d646d1a671394be3e40782af20d1",
+      "identifier": "raw_nz_pilot_summary",
+      "path": "artifacts/m0/paged-int8-prefill-nz-pilot-20260818.json",
+      "revision": "69137e4e6bd08333707bb9c74241b2501c885eb0",
+      "sha256": "97d11c02fb7d6294422903a4461ed6069781d646d1a671394be3e40782af20d1"
+    },
+    {
+      "expected_sha256": "9a4ff50b15b671b7038186bbb7fa1bda8cd5752077aba864ae7b12780671f3a9",
+      "identifier": "nd_repack_pilot_summary",
+      "path": "artifacts/m0/paged-int8-prefill-nd-pilot-20260818.json",
+      "revision": "69137e4e6bd08333707bb9c74241b2501c885eb0",
+      "sha256": "9a4ff50b15b671b7038186bbb7fa1bda8cd5752077aba864ae7b12780671f3a9"
+    },
+    {
+      "expected_sha256": "7ba1bab9a54649e258a0e407024536b0ce9092cdd04723edd4198b9d506086dd",
+      "identifier": "probe_implementation",
+      "path": "scripts/probe_m0_paged_int8_prefill.py",
+      "revision": "69137e4e6bd08333707bb9c74241b2501c885eb0",
+      "sha256": "7ba1bab9a54649e258a0e407024536b0ce9092cdd04723edd4198b9d506086dd"
+    },
+    {
+      "expected_sha256": "2c5db68afe94a5e67ad242af991a4f8519fe159b0dc26af65f6d470f6bf0cdd0",
+      "identifier": "v2_compatibility_audit",
+      "path": "artifacts/m1/v2-compatibility-audit-20260826.json",
+      "revision": "c3d4c667b74479678e81a86598b3bd864b3d6955",
+      "sha256": "2c5db68afe94a5e67ad242af991a4f8519fe159b0dc26af65f6d470f6bf0cdd0"
+    }
+  ],
+  "runtime_acceptance": false,
+  "schema_version": "adaptive-quantized-kv-parent-operator-audit/v2",
+  "source": {
+    "m0_revision": "69137e4e6bd08333707bb9c74241b2501c885eb0",
+    "m1_revision": "c3d4c667b74479678e81a86598b3bd864b3d6955",
+    "origin": "intellistream/ascend-adaptive-quantized-kv"
+  },
+  "status": "SUPPORTED_BY_PINNED_SUMMARIES"
+}

@@ -25,6 +25,7 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
+component = ["torch==2.8.0"]
 test = [
   "build>=1.2",
   "pytest>=8",
