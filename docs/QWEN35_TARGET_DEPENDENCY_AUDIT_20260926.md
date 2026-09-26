@@ -7,7 +7,7 @@ an NPU, start a service, or establish correctness or performance.
 
 - host base: `vLLM-HUST/vllm-ascend-hust@fbe4911bb54ce493b3fcbbf6238b032b9dc07ec6`;
 - candidate host contract: Draft PR #35 at
-  `11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e`, rebased onto that host base;
+  `084f70f50dfcdf2daf66b3a31813bc982c2d1d09`, rebased onto that host base;
 - required target: `Qwen3.5-35B-A3B` BF16, TP2, APC, MTP2, async scheduling, and
   `FULL_AND_PIECEWISE`;
 - plugin state: `import_only`, no active provider.
@@ -31,7 +31,7 @@ host revision support the complete combination without changing its semantics.
 | Async scheduling | Scheduler/model-runner code contains Qwen3.5 and async handling | Async tests exist, but no exact-target APC+C8-provider+MTP2 combination | Combination unknown | Prove decode/prefill row ordering, cumulative Q lengths and KV lengths remain valid after async compaction/reuse |
 | `FULL_AND_PIECEWISE` | Hybrid/Mamba config enables this graph mode by default; PR #35 offers the provider before `full_graph_fia` while capturing and retains workspace tensors | Provider unit tests cover a mocked capture branch; exact target tests use either unspecified/default graph mode or `FULL_DECODE_ONLY` | Source-backed intent, real graph unverified | Confirm capture partition, replay lifetime, shape identity and disabled-path equivalence on the exact target |
 | Mixed decode/prefill batch | PR #35 slices prefill rows after `num_decodes` and leaves decode on native paged C8 | CPU-only tests cover classification plus aligned slicing of query/output views, cumulative Q/KV lengths and block tables; no exact-target runtime test | Unit-test-backed only | Confirm scheduler ordering guarantee under MTP2+async and test mixed output assembly |
-| Provider implementation/kernel | PR #35 defines only discovery, request/result objects and host dispatch | No project provider or NPU kernel exists in the plugin | Required implementation | Add a lazy, fail-closed provider and prove manager enablement reaches it before active publication |
+| Provider implementation/kernel | PR #35 defines discovery, request/result objects, host dispatch, actual model/TP identity and a canonical provider-owned JSON carrier | Plugin PR #4 has a strict, pure-Python activation schema and runtime-identity gate, but no provider or NPU kernel | Required implementation | Close BF16-to-C8 profile loading, then add a lazy fail-closed provider and prove manager enablement reaches it before active publication |
 | Host acceptance | PR #35 is open Draft | No host-owner review, accepted API revision or merge receipt | Blocking governance gate | Record architecture disposition, delivery owner and exact accepted revision in Issue #1/PR #35 |
 | Host CI | Ruff, format and focused syntax checks pass on the current PR head | Test-only PR #37 passes pre-commit/mypy after declaring the local `V41CacheLayer.kv_cache`; CPU UT then fails during collection because the CI image cannot import `triton.runtime.jit` | Type fix prepared; baseline environment gate open | Land PR #37, repair or identify the baseline Triton image issue, then rerun PR #35 candidate unit tests |
 
@@ -46,7 +46,7 @@ post-acceptance failure explicit.
 
 Those properties are sufficient to request host review. They are not
 sufficient to claim that the complete target matrix works. In particular, the
-candidate does not identify a C8 Qwen3.5 artifact, implement the provider, or
+candidate does not identify a calibrated C8 Qwen3.5 profile, implement the provider, or
 prove hybrid-cache, MTP2, async and graph replay interactions.
 
 ## Minimum accepted host response

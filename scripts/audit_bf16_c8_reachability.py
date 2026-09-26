@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 ASCEND_REPOSITORY = "vLLM-HUST/vllm-ascend-hust"
-DEFAULT_ASCEND_REVISION = "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+DEFAULT_ASCEND_REVISION = "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
 MODEL_REPOSITORY = "Qwen/Qwen3.5-35B-A3B"
 MODEL_REVISION = "59d61f3ce65a6d9863b86d2e96597125219dc754"
 SCHEMA_VERSION = "vllm-ascend-bf16-c8-reachability-audit/v1"
@@ -216,9 +216,11 @@ def analyze(units: dict[str, SourceUnit]) -> list[dict[str, Any]]:
             "id": "provider-is-downstream-of-c8-weight-setup",
             "status": "confirmed-in-pinned-source",
             "summary": (
-                "The provider is configured only after C8 weight setup. Missing "
-                "checkpoint scales leave one/zero initialization; provider activation "
-                "does not calibrate or validate those values."
+                "The provider is configured only after ModelSlim has selected the C8 "
+                "attention method and completed C8 weight setup. The new provider JSON "
+                "carrier does not select this method. Missing checkpoint scales leave "
+                "one/zero initialization; provider activation does not calibrate or "
+                "validate those values."
             ),
             "evidence": [
                 source_ref(
@@ -341,7 +343,9 @@ def audit(
             "Provide a model-revision-bound KV calibration profile with per-layer "
             "K/V scales and explicitly zero offsets, or implement and validate an "
             "equivalent Host-owned scale source.",
-            "Define TP2 sharding and cache-write ownership for that profile.",
+            "Define a reviewed BF16-to-C8 entry path that selects C8 only for the ten "
+            "full-attention layers, loads the profile before cache allocation/use, "
+            "and preserves TP2 sharding and cache-write ownership.",
             "Keep the extension import_only until manager enablement reaches a "
             "provider with the pinned Host and scale profile and fails closed on "
             "identity or shape mismatch.",

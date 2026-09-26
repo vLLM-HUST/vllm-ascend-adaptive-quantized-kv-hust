@@ -41,7 +41,7 @@
       ],
       "id": "provider-is-downstream-of-c8-weight-setup",
       "status": "confirmed-in-pinned-source",
-      "summary": "The provider is configured only after C8 weight setup. Missing checkpoint scales leave one/zero initialization; provider activation does not calibrate or validate those values."
+      "summary": "The provider is configured only after ModelSlim has selected the C8 attention method and completed C8 weight setup. The new provider JSON carrier does not select this method. Missing checkpoint scales leave one/zero initialization; provider activation does not calibrate or validate those values."
     },
     {
       "evidence": [
@@ -60,17 +60,17 @@
     {
       "evidence": [
         {
-          "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
-          "end_line": 1710,
+          "blob_sha256": "f5aec196adb072cbf76a7e88f8f7cf7b2a9be05619b07a55a8e22a17529b822f",
+          "end_line": 1723,
           "path": "vllm_ascend/attention/attention_v1.py",
-          "start_line": 1689,
+          "start_line": 1702,
           "symbol": "AscendC8AttentionBackendImpl._quantize_kv_to_int8"
         },
         {
-          "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
-          "end_line": 1687,
+          "blob_sha256": "f5aec196adb072cbf76a7e88f8f7cf7b2a9be05619b07a55a8e22a17529b822f",
+          "end_line": 1700,
           "path": "vllm_ascend/attention/attention_v1.py",
-          "start_line": 1641,
+          "start_line": 1654,
           "symbol": "AscendC8AttentionBackendImpl._dequant_paged_kv_to_dense"
         }
       ],
@@ -81,7 +81,7 @@
   ],
   "host": {
     "repository": "vLLM-HUST/vllm-ascend-hust",
-    "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+    "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
   },
   "limitations": [
     "The model file list is a retained manifest observation for the exact public model revision; the audit does not download model tensors.",
@@ -128,7 +128,7 @@
   "performance_claim": false,
   "required_closure": [
     "Provide a model-revision-bound KV calibration profile with per-layer K/V scales and explicitly zero offsets, or implement and validate an equivalent Host-owned scale source.",
-    "Define TP2 sharding and cache-write ownership for that profile.",
+    "Define a reviewed BF16-to-C8 entry path that selects C8 only for the ten full-attention layers, loads the profile before cache allocation/use, and preserves TP2 sharding and cache-write ownership.",
     "Keep the extension import_only until manager enablement reaches a provider with the pinned Host and scale profile and fails closed on identity or shape mismatch."
   ],
   "runtime_compatible": false,
@@ -144,7 +144,7 @@
       "path": "vllm_ascend/quantization/methods/kv_cache/kv_c8.py"
     },
     {
-      "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
+      "blob_sha256": "f5aec196adb072cbf76a7e88f8f7cf7b2a9be05619b07a55a8e22a17529b822f",
       "path": "vllm_ascend/attention/attention_v1.py"
     },
     {
