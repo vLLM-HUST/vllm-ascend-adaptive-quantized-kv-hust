@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 HOST_REPOSITORY = "vLLM-HUST/vllm-ascend-hust"
-HOST_REVISION = "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+HOST_REVISION = "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
 MANAGER_REPOSITORY = "vLLM-HUST/extension-manager"
 MANAGER_REVISION = "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b"
 SCHEMA_VERSION = "vllm-ascend-c8-manager-provider-activation-audit/v1"
@@ -28,15 +28,20 @@ PLUGIN_MANIFEST = "src/vllm_ascend_adaptive_quantized_kv/vllm-hust-extension-v0.
 
 EXPECTED_PROVIDER_CONFIG_FIELDS = {
     "layer_name",
+    "model",
+    "model_revision",
+    "tensor_parallel_rank",
+    "tensor_parallel_size",
     "num_heads",
     "num_kv_heads",
     "head_size",
     "scale",
     "kv_cache_dtype",
+    "provider_config_json",
 }
-REQUIRED_ATTESTATION_FIELDS = {
-    "model_repository",
-    "model_revision",
+REQUIRED_PROVIDER_CONFIG_KEYS = {
+    "expected_model",
+    "expected_model_revision",
     "model_config_sha256",
     "profile_sha256",
     "zero_offsets_attested",
@@ -232,19 +237,19 @@ def analyze(
             f"expected {sorted(EXPECTED_PROVIDER_CONFIG_FIELDS)}, "
             f"got {sorted(provider_fields)}"
         )
-    missing_attestation = sorted(REQUIRED_ATTESTATION_FIELDS - provider_fields)
     findings.append(
         {
-            "id": "host-provider-config-lacks-artifact-attestation",
-            "status": "blocking-contract-gap",
+            "id": "host-construction-carries-runtime-identity-and-provider-json",
+            "status": "confirmed-in-pinned-candidate-source",
             "summary": (
-                "The Host factory config carries only layer shape and dtype data. It "
-                "does not carry the actual model identity, pinned config digest, "
-                "calibration profile digest, or zero-offset attestation required to "
-                "fail closed on the BF16 target contract."
+                "The Host factory config now carries the actual model and revision, "
+                "TP rank and size, layer shape and dtype data, plus one canonical "
+                "provider-owned JSON object. Artifact digests and zero-offset policy "
+                "remain plugin-owned values that the provider must validate from that "
+                "JSON during construction."
             ),
             "observed_fields": sorted(provider_fields),
-            "missing_required_fields": missing_attestation,
+            "required_provider_config_keys": sorted(REQUIRED_PROVIDER_CONFIG_KEYS),
             "evidence": [
                 source_ref(
                     host_provider,
@@ -302,11 +307,20 @@ def analyze(
         if field.startswith("c8_continuing_prefill_provider")
         and field != "c8_continuing_prefill_provider"
     )
-    if provider_option_fields:
+    if provider_option_fields != ["c8_continuing_prefill_provider_config"]:
         raise AuditInconclusive(
-            "Host now exposes unreviewed provider option fields: "
-            f"{provider_option_fields}"
+            f"Host provider option fields changed: {provider_option_fields}"
         )
+    validate_user_input = find_qualified_def(
+        host_config.text, "AscendConfig._validate_user_input_ranges"
+    )
+    _require_text(
+        validate_user_input,
+        "c8_continuing_prefill_provider_config requires c8_continuing_prefill_provider",
+        "json.dumps",
+        "allow_nan=False",
+        "sort_keys=True",
+    )
 
     host_attention = units[f"host:{HOST_ATTENTION}"]
     configure = find_qualified_def(
@@ -315,21 +329,35 @@ def analyze(
     )
     _require_text(
         configure,
-        "get_ascend_config().c8_continuing_prefill_provider",
+        "ascend_config = get_ascend_config()",
+        "factory_path = ascend_config.c8_continuing_prefill_provider",
         "C8ContinuingPrefillProviderConfig",
+        "model=model_config.model",
+        "model_revision=model_config.revision",
+        "tensor_parallel_rank=get_tensor_model_parallel_rank()",
+        "tensor_parallel_size=get_tensor_model_parallel_world_size()",
+        "ascend_config.c8_continuing_prefill_provider_config",
+        "allow_nan=False",
+        "sort_keys=True",
     )
     findings.append(
         {
-            "id": "host-activation-exposes-only-factory-path",
-            "status": "blocking-contract-gap",
+            "id": "host-activation-carries-immutable-provider-config",
+            "status": "confirmed-in-pinned-candidate-source",
             "summary": (
-                "AscendConfig exposes only the module:factory string, and the "
-                "attention layer builds the six-field factory config. Unknown settings "
-                "cannot be delivered as typed Host configuration at this revision."
+                "AscendConfig exposes a factory path and a finite JSON provider "
+                "configuration. The attention layer canonicalizes that object and "
+                "combines it with actual runtime identity before constructing the "
+                "provider ahead of graph capture."
             ),
             "provider_option_fields": provider_option_fields,
             "evidence": [
                 source_ref(host_config, "AscendConfig", ascend_config),
+                source_ref(
+                    host_config,
+                    "AscendConfig._validate_user_input_ranges",
+                    validate_user_input,
+                ),
                 source_ref(
                     host_attention,
                     "AscendC8AttentionBackendImpl.configure_c8_continuing_prefill_provider",
@@ -391,7 +419,9 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
     return {
         "schema_version": SCHEMA_VERSION,
         "classification": "read-only-pinned-source-and-worktree-manifest-audit",
-        "activation_status": "BLOCKED_BY_MISSING_TYPED_PROVIDER_CONFIGURATION",
+        "activation_status": (
+            "HOST_CONFIG_CHANNEL_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
+        ),
         "runtime_compatible": False,
         "npu_started": False,
         "performance_claim": False,
@@ -416,10 +446,12 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
         ],
         "findings": findings,
         "required_closure": [
-            "Add a Host-owned typed provider-settings object and pass immutable "
-            "model/profile attestation to the provider factory before graph capture.",
-            "Load and validate the revision-bound C8 profile before per-request "
-            "eligibility; do not read NPU offset tensors in is_eligible.",
+            "Define a plugin-owned provider JSON schema and fail closed on model, "
+            "revision, config digest, profile digest, layer coverage, TP shape, and "
+            "zero-offset policy during provider construction.",
+            "Supply and validate a revision-bound C8 profile before per-request "
+            "eligibility; do not read NPU offset tensors in is_eligible, and prove the "
+            "BF16 target reaches C8 cache write rather than default 1/0 parameters.",
             "Use the standard Manager vLLM Provider: keep the factory path in static "
             "activation and supply deployment profile settings through operator-owned "
             "--additional-config, with conflict rejection preserved.",

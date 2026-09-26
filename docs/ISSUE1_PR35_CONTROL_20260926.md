@@ -49,7 +49,7 @@ owner and maintainers.
 Draft PR
 [`vLLM-HUST/vllm-ascend-hust#35`](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35)
 is currently pinned here at
-`11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e`, rebased without patch changes
+`084f70f50dfcdf2daf66b3a31813bc982c2d1d09`, rebased without patch changes
 onto `vllm-ascend-hust@fbe4911bb54ce493b3fcbbf6238b032b9dc07ec6`. Its
 candidate source addresses:
 
@@ -71,6 +71,9 @@ candidate source addresses:
 8. A CPU-only mixed-batch contract test now locks the decode-row removal and
    corresponding query/output, cumulative-length, KV-length, and block-table
    slicing assumptions.
+9. A finite JSON provider-config channel now combines operator-owned settings
+   with actual model/revision, TP rank/size, layer shape and dtype in one
+   immutable factory input before graph capture.
 
 These are source-level properties of the candidate, not an accepted public API
 or a real-device result.
@@ -126,9 +129,11 @@ Before plugin integration or NPU work, the host owner must confirm:
   the provider factory, while deployment profile settings remain
   operator-owned `--additional-config`; do not create a private Manager
   Provider to bypass the Host contract.
-- Extend the Host candidate with typed construction-time profile attestation
-  before implementing per-request provider eligibility. The source-backed
-  contract gap is recorded in
+- Define and test the plugin-owned provider JSON schema now that the Host
+  candidate supplies canonical construction-time configuration and runtime
+  identity. Profile loading, digest checks and zero-offset validation remain
+  provider-construction work, not per-request eligibility. The source-backed
+  status is recorded in
   [`C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md`](C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md).
 - Preserve the delivered CPU reference and historical evidence.
 - Prepare a bounded real-device correctness matrix without executing it.
@@ -151,7 +156,7 @@ Before plugin integration or NPU work, the host owner must confirm:
 | H0 | Publish this PR #35-to-owner-decision mapping in Issue #1 | Issue reply links the exact PR head and separates resolved candidate work from pending host decisions |
 | H1 | Source-only target/mode dependency audit | Every Qwen3.5/TP2/APC/MTP2/async/FULL_AND_PIECEWISE dependency is mapped to source, test, unknown, or blocker in [`QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md`](QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md) |
 | H2 | Host CI and BF16-to-C8 reachability | PR #37 is landed and the Host CPU-UT environment can collect tests; a revision-bound scale profile or accepted Host scale source covers exactly the ten full-attention layers with 512 global/256 TP2-local channels, zero offsets and calibration provenance, allowing the exact BF16 target to construct the reviewed paged-INT8 request without substituting a different model |
-| H3 | Host/provider and plugin-manager candidate | Exact Host/Manager/provider revisions are pinned; Host construction receives and validates model/config/profile identity and zero-offset attestation; Manager dry-run merges the fixed factory with operator-owned settings; enablement reaches the provider; disabled, conflicting and unsupported paths fail closed |
+| H3 | Host/provider and plugin-manager candidate | Exact Host/Manager/provider revisions are pinned; the Host configuration carrier is present at `084f70f50dfcdf2daf66b3a31813bc982c2d1d09`; the plugin provider validates model/config/profile identity and zero-offset policy; Manager dry-run merges the fixed factory with operator-owned settings; enablement reaches the provider; disabled, conflicting and unsupported paths fail closed |
 | H4 | Real-device correctness | Pinned BF16 model/source/config passes APC/MTP2/async/hybrid-cache/output/graph capture-replay/cleanup gates |
 | H5 | Performance validation | Only after H4; preregistered matched runs may measure TTFT/TPOT, throughput, memory, and conversion cost |
 

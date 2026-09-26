@@ -47,10 +47,11 @@ class ProviderConfig:
     assert audit._annotated_fields(class_node) == {"layer_name", "head_size"}
 
 
-def test_required_attestation_is_absent_from_current_factory_shape() -> None:
-    assert audit.REQUIRED_ATTESTATION_FIELDS.isdisjoint(
-        audit.EXPECTED_PROVIDER_CONFIG_FIELDS
-    )
+def test_provider_owned_attestation_has_a_canonical_json_carrier() -> None:
+    assert "provider_config_json" in audit.EXPECTED_PROVIDER_CONFIG_FIELDS
+    assert "model" in audit.EXPECTED_PROVIDER_CONFIG_FIELDS
+    assert "tensor_parallel_size" in audit.EXPECTED_PROVIDER_CONFIG_FIELDS
+    assert "profile_sha256" in audit.REQUIRED_PROVIDER_CONFIG_KEYS
 
 
 def test_success_receipt_is_deterministic(monkeypatch, tmp_path) -> None:
@@ -87,7 +88,7 @@ def test_success_receipt_is_deterministic(monkeypatch, tmp_path) -> None:
 
     assert first == second
     assert first["activation_status"] == (
-        "BLOCKED_BY_MISSING_TYPED_PROVIDER_CONFIGURATION"
+        "HOST_CONFIG_CHANNEL_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
     )
     assert first["runtime_compatible"] is False
     assert "generated_at" not in first

@@ -1,5 +1,5 @@
 {
-  "activation_status": "BLOCKED_BY_MISSING_TYPED_PROVIDER_CONFIGURATION",
+  "activation_status": "HOST_CONFIG_CHANNEL_READY_PROFILE_AND_PROVIDER_STILL_MISSING",
   "classification": "read-only-pinned-source-and-worktree-manifest-audit",
   "findings": [
     {
@@ -46,52 +46,57 @@
     {
       "evidence": [
         {
-          "blob_sha256": "f91857f8de7e3feb12ffb13da9ce10bc1064837c8d4969b0d8a79c56351ed34f",
-          "end_line": 22,
+          "blob_sha256": "3a1ddba6621a1dd7f8e29168c7e7f3ebbf749965656cbea7e6cff81a9cf04289",
+          "end_line": 27,
           "path": "vllm_ascend/attention/continuing_prefill.py",
           "repository": "vLLM-HUST/vllm-ascend-hust",
-          "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e",
+          "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
           "start_line": 14,
           "symbol": "C8ContinuingPrefillProviderConfig"
         }
       ],
-      "id": "host-provider-config-lacks-artifact-attestation",
-      "missing_required_fields": [
-        "model_config_sha256",
-        "model_repository",
-        "model_revision",
-        "profile_sha256",
-        "zero_offsets_attested"
-      ],
+      "id": "host-construction-carries-runtime-identity-and-provider-json",
       "observed_fields": [
         "head_size",
         "kv_cache_dtype",
         "layer_name",
+        "model",
+        "model_revision",
         "num_heads",
         "num_kv_heads",
-        "scale"
+        "provider_config_json",
+        "scale",
+        "tensor_parallel_rank",
+        "tensor_parallel_size"
       ],
-      "status": "blocking-contract-gap",
-      "summary": "The Host factory config carries only layer shape and dtype data. It does not carry the actual model identity, pinned config digest, calibration profile digest, or zero-offset attestation required to fail closed on the BF16 target contract."
+      "required_provider_config_keys": [
+        "expected_model",
+        "expected_model_revision",
+        "model_config_sha256",
+        "profile_sha256",
+        "zero_offsets_attested"
+      ],
+      "status": "confirmed-in-pinned-candidate-source",
+      "summary": "The Host factory config now carries the actual model and revision, TP rank and size, layer shape and dtype data, plus one canonical provider-owned JSON object. Artifact digests and zero-offset policy remain plugin-owned values that the provider must validate from that JSON during construction."
     },
     {
       "evidence": [
         {
-          "blob_sha256": "f91857f8de7e3feb12ffb13da9ce10bc1064837c8d4969b0d8a79c56351ed34f",
-          "end_line": 92,
+          "blob_sha256": "3a1ddba6621a1dd7f8e29168c7e7f3ebbf749965656cbea7e6cff81a9cf04289",
+          "end_line": 97,
           "path": "vllm_ascend/attention/continuing_prefill.py",
           "repository": "vLLM-HUST/vllm-ascend-hust",
-          "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e",
-          "start_line": 80,
+          "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
+          "start_line": 85,
           "symbol": "C8ContinuingPrefillProvider"
         },
         {
-          "blob_sha256": "f91857f8de7e3feb12ffb13da9ce10bc1064837c8d4969b0d8a79c56351ed34f",
-          "end_line": 90,
+          "blob_sha256": "3a1ddba6621a1dd7f8e29168c7e7f3ebbf749965656cbea7e6cff81a9cf04289",
+          "end_line": 95,
           "path": "vllm_ascend/attention/continuing_prefill.py",
           "repository": "vLLM-HUST/vllm-ascend-hust",
-          "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e",
-          "start_line": 83,
+          "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
+          "start_line": 88,
           "symbol": "C8ContinuingPrefillProvider.is_eligible"
         }
       ],
@@ -102,28 +107,39 @@
     {
       "evidence": [
         {
-          "blob_sha256": "6c0d25f9302bf7e13b16f4dac913131726e80f98ead625ec61d4033da16fb773",
-          "end_line": 1147,
+          "blob_sha256": "05eca21f146891947916dc2d313e616e12bf1a13869efdd857a43c1fef096689",
+          "end_line": 1165,
           "path": "vllm_ascend/ascend_config.py",
           "repository": "vLLM-HUST/vllm-ascend-hust",
-          "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e",
+          "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
           "start_line": 317,
           "symbol": "AscendConfig"
         },
         {
-          "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
-          "end_line": 1392,
+          "blob_sha256": "05eca21f146891947916dc2d313e616e12bf1a13869efdd857a43c1fef096689",
+          "end_line": 605,
+          "path": "vllm_ascend/ascend_config.py",
+          "repository": "vLLM-HUST/vllm-ascend-hust",
+          "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
+          "start_line": 575,
+          "symbol": "AscendConfig._validate_user_input_ranges"
+        },
+        {
+          "blob_sha256": "f5aec196adb072cbf76a7e88f8f7cf7b2a9be05619b07a55a8e22a17529b822f",
+          "end_line": 1405,
           "path": "vllm_ascend/attention/attention_v1.py",
           "repository": "vLLM-HUST/vllm-ascend-hust",
-          "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e",
-          "start_line": 1373,
+          "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
+          "start_line": 1374,
           "symbol": "AscendC8AttentionBackendImpl.configure_c8_continuing_prefill_provider"
         }
       ],
-      "id": "host-activation-exposes-only-factory-path",
-      "provider_option_fields": [],
-      "status": "blocking-contract-gap",
-      "summary": "AscendConfig exposes only the module:factory string, and the attention layer builds the six-field factory config. Unknown settings cannot be delivered as typed Host configuration at this revision."
+      "id": "host-activation-carries-immutable-provider-config",
+      "provider_option_fields": [
+        "c8_continuing_prefill_provider_config"
+      ],
+      "status": "confirmed-in-pinned-candidate-source",
+      "summary": "AscendConfig exposes a factory path and a finite JSON provider configuration. The attention layer canonicalizes that object and combines it with actual runtime identity before constructing the provider ahead of graph capture."
     },
     {
       "id": "plugin-remains-inert-until-contract-closes",
@@ -133,7 +149,7 @@
   ],
   "host": {
     "repository": "vLLM-HUST/vllm-ascend-hust",
-    "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+    "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
   },
   "limitations": [
     "This audit does not supply Qwen3.5 calibration values.",
@@ -152,8 +168,8 @@
     "sha256": "c70dec2db8fc1bdf50582acc39c5b474c1edd8d3a4c9a16e5f4e09d932befd5f"
   },
   "required_closure": [
-    "Add a Host-owned typed provider-settings object and pass immutable model/profile attestation to the provider factory before graph capture.",
-    "Load and validate the revision-bound C8 profile before per-request eligibility; do not read NPU offset tensors in is_eligible.",
+    "Define a plugin-owned provider JSON schema and fail closed on model, revision, config digest, profile digest, layer coverage, TP shape, and zero-offset policy during provider construction.",
+    "Supply and validate a revision-bound C8 profile before per-request eligibility; do not read NPU offset tensors in is_eligible, and prove the BF16 target reaches C8 cache write rather than default 1/0 parameters.",
     "Use the standard Manager vLLM Provider: keep the factory path in static activation and supply deployment profile settings through operator-owned --additional-config, with conflict rejection preserved.",
     "Keep the published manifest import_only until a clean Manager dry-run and Host contract test prove disabled, eligible, and fail-closed paths."
   ],
@@ -161,22 +177,22 @@
   "schema_version": "vllm-ascend-c8-manager-provider-activation-audit/v1",
   "sources": [
     {
-      "blob_sha256": "6c0d25f9302bf7e13b16f4dac913131726e80f98ead625ec61d4033da16fb773",
+      "blob_sha256": "05eca21f146891947916dc2d313e616e12bf1a13869efdd857a43c1fef096689",
       "path": "vllm_ascend/ascend_config.py",
       "repository": "vLLM-HUST/vllm-ascend-hust",
-      "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+      "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
     },
     {
-      "blob_sha256": "f91857f8de7e3feb12ffb13da9ce10bc1064837c8d4969b0d8a79c56351ed34f",
+      "blob_sha256": "3a1ddba6621a1dd7f8e29168c7e7f3ebbf749965656cbea7e6cff81a9cf04289",
       "path": "vllm_ascend/attention/continuing_prefill.py",
       "repository": "vLLM-HUST/vllm-ascend-hust",
-      "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+      "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
     },
     {
-      "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
+      "blob_sha256": "f5aec196adb072cbf76a7e88f8f7cf7b2a9be05619b07a55a8e22a17529b822f",
       "path": "vllm_ascend/attention/attention_v1.py",
       "repository": "vLLM-HUST/vllm-ascend-hust",
-      "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+      "revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
     },
     {
       "blob_sha256": "3152034fcfc56e7cca6d3bf947e4dd13064f73f316879e0d34f6ccf476ed353a",
