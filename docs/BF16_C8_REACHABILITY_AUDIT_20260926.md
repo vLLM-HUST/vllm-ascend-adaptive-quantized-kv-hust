@@ -103,10 +103,15 @@ unqualified `--quantization ascend` switch. At minimum it must bind:
 
 The Extension Manager's built-in vLLM Host provider can eventually carry the
 Host `additional_config` used to select this profile and the PR #35 provider.
-The project must not register an unofficial `vllm.*` entry-point or a custom
-Host provider merely to bypass the missing scale contract. The released
-manifest remains `import_only` until an activation test proves that Manager
-enablement reaches the pinned provider with this profile.
+The exact source audit in
+[`C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md`](C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md)
+shows that static manifest activation is merged with operator-owned
+`--additional-config` and conflicts fail closed. Saved `extension configure`
+data alone is not a generic Host config channel. The project must not register
+an unofficial `vllm.*` entry point or a custom Host provider merely to bypass
+the missing scale contract. The released manifest remains `import_only` until
+an activation test proves that Manager enablement reaches a pinned provider
+with the reviewed profile.
 
 ## Exact target profile shape
 
@@ -173,11 +178,15 @@ provenance.
    required paged INT8 KV metadata. The artifact must cover exactly the ten
    full-attention layers and satisfy the 512-global/256-TP-local channel
    contract above.
-4. Implement the plugin provider with lazy runtime imports, strict eligibility,
+4. Add a typed Host-owned provider-settings object. The current six-field
+   factory config has no model/config/profile digest or zero-offset
+   attestation, and per-request `is_eligible()` may not synchronize NPU tensors
+   to recover them.
+5. Implement the plugin provider with lazy runtime imports, strict eligibility,
    and fail-closed result semantics while the manifest remains `import_only`.
-5. Add an active manifest revision only when manager enablement reaches that
+6. Add an active manifest revision only when manager enablement reaches that
    provider in a source/contract test.
-6. Run the fixed correctness matrix on an assigned device. Performance remains
+7. Run the fixed correctness matrix on an assigned device. Performance remains
    out of scope until the owner accepts the complete correctness evidence.
 
 This is source evidence only. No device, service, operator, correctness, or

@@ -122,6 +122,14 @@ Before plugin integration or NPU work, the host owner must confirm:
 - Implement a lazy, default-off provider candidate and its manager-activation
   contract off-device, while retaining `import_only` until target reachability
   and activation tests are complete.
+- Use the Extension Manager's built-in vLLM Provider. Static activation may fix
+  the provider factory, while deployment profile settings remain
+  operator-owned `--additional-config`; do not create a private Manager
+  Provider to bypass the Host contract.
+- Extend the Host candidate with typed construction-time profile attestation
+  before implementing per-request provider eligibility. The source-backed
+  contract gap is recorded in
+  [`C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md`](C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md).
 - Preserve the delivered CPU reference and historical evidence.
 - Prepare a bounded real-device correctness matrix without executing it.
 
@@ -143,7 +151,7 @@ Before plugin integration or NPU work, the host owner must confirm:
 | H0 | Publish this PR #35-to-owner-decision mapping in Issue #1 | Issue reply links the exact PR head and separates resolved candidate work from pending host decisions |
 | H1 | Source-only target/mode dependency audit | Every Qwen3.5/TP2/APC/MTP2/async/FULL_AND_PIECEWISE dependency is mapped to source, test, unknown, or blocker in [`QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md`](QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md) |
 | H2 | Host CI and BF16-to-C8 reachability | PR #37 is landed and the Host CPU-UT environment can collect tests; a revision-bound scale profile or accepted Host scale source covers exactly the ten full-attention layers with 512 global/256 TP2-local channels, zero offsets and calibration provenance, allowing the exact BF16 target to construct the reviewed paged-INT8 request without substituting a different model |
-| H3 | Host/provider and plugin-manager candidate | Exact Host/provider revisions are pinned; manager enablement reaches the provider; disabled and unsupported paths fail closed |
+| H3 | Host/provider and plugin-manager candidate | Exact Host/Manager/provider revisions are pinned; Host construction receives and validates model/config/profile identity and zero-offset attestation; Manager dry-run merges the fixed factory with operator-owned settings; enablement reaches the provider; disabled, conflicting and unsupported paths fail closed |
 | H4 | Real-device correctness | Pinned BF16 model/source/config passes APC/MTP2/async/hybrid-cache/output/graph capture-replay/cleanup gates |
 | H5 | Performance validation | Only after H4; preregistered matched runs may measure TTFT/TPOT, throughput, memory, and conversion cost |
 
