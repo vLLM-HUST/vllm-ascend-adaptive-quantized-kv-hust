@@ -12,16 +12,24 @@ ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主
 默认安装和发现不会加载 Torch。接管范围、来源和阶段门禁见
 [`PR19_TAKEOVER_CONTROL_20260904.md`](docs/PR19_TAKEOVER_CONTROL_20260904.md)。
 
+CPU 参考实现已通过插件 PR #3 合入，提交为
+`8587845f29d70256103990ed6492837ddaf5a800`。当前宿主依赖、PR #35 状态和
+责任边界以
+[`ISSUE1_PR35_CONTROL_20260926.md`](docs/ISSUE1_PR35_CONTROL_20260926.md)
+为准。
+
 当前版本不会自动激活运行时逻辑，不会 patch vLLM 或 vLLM Ascend，不会启动
 模型服务，也不声明性能收益。现有宿主基线尚未提供本插件需要的已评审接口，
 所以安装后保持惰性是有意设计的结果。
 只要 manifest 仍标记为 `import_only`，Extension Manager 就会拒绝启用；必须先由
 宿主接受接口合同，并在后续 manifest 中明确声明 active implementation。
 
-本组织插件是课题实现和可见进展的唯一载体。课题不再直接向 `vllm-hust` 或
-`vllm-ascend-hust` 提交优化 commit/PR；缺少的通用宿主接口在本仓库提出，
-由宿主负责人实现，或由负责人明确指定其他交付方式。可复现实验 workload
-继续由研究仓中的固定 `intellistream/llm-serving-workloads` gitlink 提供。
+本组织插件是课题实现和可见进展的主要载体。负责人后续允许提交最小、通用、
+默认关闭的宿主合同候选，交由 CODEOWNERS/maintainer 审查；宿主 Draft PR #35
+属于这一候选路线，但不代表宿主接口的交付、采纳和最终决策责任转移给本课题。
+只有宿主负责人接受精确接口版本且真机正确性门禁通过后，才允许讨论运行时激活。
+可复现实验 workload 继续由研究仓中的固定
+`intellistream/llm-serving-workloads` gitlink 提供。
 
 研究合同、实验脚本、原始证据和结论继续保存在
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv)，

@@ -26,13 +26,20 @@ model service, or make a performance claim. The current host baselines do not
 yet expose the reviewed contracts required by this extension. Installing the
 package is therefore inert.
 
+The CPU reference delivery was merged through plugin PR #3 at
+`8587845f29d70256103990ed6492837ddaf5a800`. The current host dependency and
+ownership boundary, including the status of host Draft PR #35, is controlled by
+[`docs/ISSUE1_PR35_CONTROL_20260926.md`](docs/ISSUE1_PR35_CONTROL_20260926.md).
+
 ## Delivery policy
 
-This organization plugin is the project implementation carrier. The project
-does not submit optimization commits or PRs directly to `vllm-hust` or
-`vllm-ascend-hust`. Missing generic host interfaces are reviewed in this
-repository and must be delivered by the host owner or another explicitly
-approved route. Reproducible workload contracts remain in the research carrier
+This organization plugin is the project implementation carrier. A later owner
+correction permits a minimal, generic, default-off host-contract candidate to
+be submitted for CODEOWNERS/maintainer review. Host Draft PR #35 is such a
+candidate; it does not transfer host-interface delivery, adoption, or go/no-go
+ownership to this plugin project. Runtime activation remains blocked until the
+host owner accepts an exact interface revision and real-device correctness
+gates pass. Reproducible workload contracts remain in the research carrier
 with its fixed `intellistream/llm-serving-workloads` gitlink.
 
 ## Identity

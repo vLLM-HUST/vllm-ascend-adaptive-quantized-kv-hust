@@ -24,13 +24,13 @@ This work does not reopen PR #19 or modify a core host repository.
 | --- | --- | --- | --- |
 | S0 | Audit exact PR and reproduce admission/correctness gaps off-device | Record findings and disposition of every changed area | Complete |
 | S1 | Implement a standalone CPU tensor reference in this extension | Dense-reference agreement for grouped heads, variable lengths, non-unit scales, page order, causal masks and partial blocks; invalid inputs rejected | Complete; validation below |
-| S2 | Verify packaging and submit a student-authored Draft PR | Existing inert-package tests plus component tests, isolated build and CI; exact source attribution | Complete: Draft #3; four CI jobs pass |
+| S2 | Verify packaging and submit a student-authored Draft PR | Existing inert-package tests plus component tests, isolated build and CI; exact source attribution | Complete: PR #3 merged as `8587845f29d70256103990ed6492837ddaf5a800` |
 | S3a | Recheck host selection and bridge explicit CPU snapshots to the reference | Pinned source audit; cumulative-length/decode-prefix/NZ conversion tests | Complete: 122 total tests pass |
 | S3b | Freeze a reproducible read-only audit of C8 dispatch, capture/replay and dense fallback | Structured receipt records exact host revisions and hashes; source drift fails closed | Complete: 127 total tests pass |
 | S3c | Re-audit newer host heads without moving the retained S3b baseline | Exact-revision parameters; additive receipt; changed-path and AST checks agree on the execution boundary | Complete: execution sources unchanged |
 | S3d | Reconcile retained paged-INT8 operator probes with the takeover | Exact parent commits and summary hashes recorded; a read-only audit reproduces their integrity and diagnostic boundaries | Complete: evidence mapped without copying experiments |
 | S3e | Make host-source receipts repository-bound and deterministic | Expected GitHub origins required; HTTPS/SSH runs at the same revisions are byte-identical | Complete: no runtime or NPU work |
-| S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Blocked |
+| S3 | Integrate with a reviewed host dispatch/operator interface | Actual public host API and graph-safe layout/lifecycle contract are available; new bounded execution plan reviewed | Candidate host Draft PR #35 submitted; blocked pending host-owner acceptance and target/mode audit |
 | S4 | Run matched NPU component/service validation | Correctness, graph replay, provenance and resource gates pass before timing claims or matrix expansion | Blocked |
 
 The initial takeover executed S0-S2. S3a was added on 2026-09-05 as off-device
@@ -112,6 +112,25 @@ separate SSH-origin repositories backed by the same exact objects. Each pair
 is byte-identical. Validation after S3e is 149 passing tests plus Ruff, format
 and diff checks. This strengthens attribution and reproducibility only; it does
 not change any source finding or unblock S3/S4.
+
+### 2026-09-26 owner update
+
+Plugin Issue #1 accepts the CPU reference and evidence package as delivered.
+Host Draft PR #35 at
+`674caa5260c4a518e743b6071adab7d3c36ebc34` is the permitted minimal,
+generic, default-off candidate interface. It resolves several source-level
+request, eligibility, fallback, mixed-batch, and workspace-lifetime questions,
+but it remains review input. Host interface delivery and final go/no-go remain
+with Shuhao/the assigned host maintainers.
+
+The next validation target is `Qwen3.5-35B-A3B`, TP2, preserving APC, MTP2,
+async scheduling, and `FULL_AND_PIECEWISE`. Before the host owner accepts an
+exact interface revision and the target/mode dependency audit closes, only
+source review, documentation, and CPU-only fail-closed fixtures are allowed.
+The plugin stays `import_only`; no NPU, service, repeated operator probe,
+activation, or performance claim is authorized. See
+`docs/ISSUE1_PR35_CONTROL_20260926.md` for the controlling stage order and stop
+conditions.
 
 ## Reproduced audit and disposition
 

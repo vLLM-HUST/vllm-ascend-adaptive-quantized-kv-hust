@@ -1,0 +1,121 @@
+# Issue #1 / Host PR #35 Control, 2026-09-26
+
+## Authority and precedence
+
+This document records the latest owner direction in plugin Issue #1 and
+supersedes older execution plans where they conflict. It does not rewrite or
+invalidate historical evidence.
+
+The CPU reference and the existing evidence package are accepted as delivered.
+The next host validation target is fixed to:
+
+- model: `Qwen3.5-35B-A3B`;
+- tensor parallelism: `TP2`;
+- required retained behavior: APC, MTP2, async scheduling, and
+  `FULL_AND_PIECEWISE` graph mode.
+
+Until host-interface review and real-device correctness validation complete,
+the plugin remains `import_only` and fail closed. No runtime activation, model
+service, operator retry, performance test, or performance claim is allowed.
+
+## Ownership boundary
+
+| Area | Owner | Current boundary |
+| --- | --- | --- |
+| Final host route and go/no-go | Shuhao / host owner | Selects or rejects the host integration route and exact accepted host revision |
+| Host interface delivery | Shuhao / assigned host maintainer | Remains host-owned; it is not transferred to the plugin project |
+| Candidate host contract | XilingGao, through Draft PR #35 | Review input only: minimal, generic, default-off implementation allowed by the 2026-09-20 correction |
+| Plugin contracts and adapter | XilingGao | May proceed off-device only after the accepted host boundary is explicit |
+| CPU reference, tests, and evidence | XilingGao | Delivered; may be maintained without implying NPU support |
+| Runtime activation and performance evidence | Joint gated delivery | Blocked until accepted host revision and real-device gates pass |
+
+Draft PR #35 therefore does not contradict host ownership. It is a candidate
+implementation submitted for CODEOWNERS/maintainer review. Acceptance, adoption,
+assignment, merge, and the final delivery revision still belong to the host
+owner and maintainers.
+
+## What Draft PR #35 resolves as a candidate
+
+Draft PR
+[`vLLM-HUST/vllm-ascend-hust#35`](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35)
+is currently pinned here at
+`674caa5260c4a518e743b6071adab7d3c36ebc34`. Its candidate source addresses:
+
+1. Default-off `module:factory` provider discovery instead of a project-specific
+   import or monkey patch.
+2. A typed request boundary carrying causal multi-token TND query/output,
+   paged 5D NZ INT8 K/V, block table, cumulative query/KV lengths, TP-local
+   scales and offsets, GQA/head/block/layout metadata, masks, and graph/capture
+   context.
+3. Host-side identification of cached multi-token prefill; all-new prefill and
+   decode remain on native paths.
+4. Mixed-batch separation where continuing-prefill rows may reach the provider
+   while decode rows remain native.
+5. Explicit pre-acceptance fallback through `is_eligible=False`; after provider
+   acceptance, provider errors propagate fail closed.
+6. Output and workspace lifetime retention needed by capture-sensitive code.
+7. A default-disabled path intended to preserve current host behavior when the
+   provider is not configured.
+
+These are source-level properties of the candidate, not an accepted public API
+or a real-device result.
+
+## What still requires host-owner confirmation
+
+Before plugin integration or NPU work, the host owner must confirm:
+
+1. Whether PR #35's provider architecture is accepted, should be revised, or
+   should be replaced by another host-owned interface.
+2. The assigned host maintainer, review route, and exact accepted/merged host
+   commit that plugin work may depend on.
+3. Whether the request and result semantics cover `Qwen3.5-35B-A3B` with TP2,
+   APC, MTP2, async scheduling, mixed batches, and
+   `FULL_AND_PIECEWISE` capture/replay.
+4. Capture ordering, replay stability, workspace lifetime, fallback behavior,
+   failure behavior, and disabled-path equivalence.
+5. Whether the separate observer and ACL graph lifecycle contracts are needed,
+   and their accepted identifiers or replacements.
+6. The provider/kernel delivery route. PR #35 does not contain a project
+   provider, a native paged-INT8 continuing-prefill operator, or activation.
+7. How to resolve the current CPU-UT CI environment failure before treating
+   the PR as validated. The observed failure occurs during import because
+   `triton.runtime.jit` is unavailable, before the candidate unit tests run.
+
+## Allowed work before confirmation
+
+- Keep this ownership/dependency map current in Issue #1 and PR #35.
+- Audit the exact host source for target-model and required-mode dependencies.
+- Add fail-closed, CPU-only fixtures and contract tests that do not claim host
+  acceptance or runtime reachability.
+- Preserve the delivered CPU reference and historical evidence.
+- Prepare a bounded real-device correctness matrix without executing it.
+
+## Prohibited work before confirmation
+
+- Do not activate the plugin or change the `import_only` manifest.
+- Do not start a model service, reserve an NPU, run an operator probe, or repeat
+  previously failed native operator calls.
+- Do not publish performance, memory, graph, or quality claims.
+- Do not treat a Draft PR, dry run, projected result, or source audit as host
+  acceptance or real-device evidence.
+- Do not make project code responsible for private host graph-pool state.
+
+## Ordered stages
+
+| Stage | Work | Exit condition |
+| --- | --- | --- |
+| H0 | Publish this PR #35-to-owner-decision mapping in Issue #1 | Issue reply links the exact PR head and separates resolved candidate work from pending host decisions |
+| H1 | Source-only target/mode dependency audit | Every Qwen3.5/TP2/APC/MTP2/async/FULL_AND_PIECEWISE dependency is mapped to source, test, unknown, or blocker in [`QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md`](QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md) |
+| H2 | Host review and adoption | Host owner records route, owner, required changes, and exact accepted host revision |
+| H3 | Plugin adapter and offline contract tests | Adapter targets only the accepted API; disabled path and unsupported cases fail closed |
+| H4 | Real-device correctness | Pinned model/source/config passes provenance, baseline matching, output, graph capture/replay, and cleanup gates |
+| H5 | Performance validation | Only after H4; preregistered matched runs may measure TTFT/TPOT, throughput, memory, and conversion cost |
+
+## Stop conditions
+
+Stop immediately on ambiguous ownership, unpinned source or model identity,
+unsupported target semantics, disabled-path drift, graph capture/replay drift,
+incorrect output, incomplete cleanup, shared-device conflict, timeout, or a
+request to infer performance from non-device evidence. Record the receipt and
+return to the responsible owner; do not silently fall back to a different
+target or route.
