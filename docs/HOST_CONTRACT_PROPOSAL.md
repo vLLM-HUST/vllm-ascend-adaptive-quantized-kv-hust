@@ -6,7 +6,7 @@ The latest ownership and execution control is
 [`ISSUE1_PR35_CONTROL_20260926.md`](ISSUE1_PR35_CONTROL_20260926.md).
 Host Draft PR
 [`vLLM-HUST/vllm-ascend-hust#35`](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35)
-at `27032f3e611847784652503ade4270a1930f2bc4` is the permitted minimal,
+at `11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e` is the permitted minimal,
 generic, default-off provider-contract candidate. It implements part of the
 attention-execution decision below for review; it is not an accepted host API,
 does not provide the project provider/kernel, and does not transfer delivery or

@@ -7,7 +7,7 @@ an NPU, start a service, or establish correctness or performance.
 
 - host base: `vLLM-HUST/vllm-ascend-hust@fbe4911bb54ce493b3fcbbf6238b032b9dc07ec6`;
 - candidate host contract: Draft PR #35 at
-  `27032f3e611847784652503ade4270a1930f2bc4`;
+  `11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e`, rebased onto that host base;
 - required target: `Qwen3.5-35B-A3B`, TP2, APC, MTP2, async scheduling, and
   `FULL_AND_PIECEWISE`;
 - plugin state: `import_only`, no active provider.

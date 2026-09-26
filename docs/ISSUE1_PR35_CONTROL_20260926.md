@@ -39,7 +39,9 @@ owner and maintainers.
 Draft PR
 [`vLLM-HUST/vllm-ascend-hust#35`](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35)
 is currently pinned here at
-`27032f3e611847784652503ade4270a1930f2bc4`. Its candidate source addresses:
+`11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e`, rebased without patch changes
+onto `vllm-ascend-hust@fbe4911bb54ce493b3fcbbf6238b032b9dc07ec6`. Its
+candidate source addresses:
 
 1. Default-off `module:factory` provider discovery instead of a project-specific
    import or monkey patch.
