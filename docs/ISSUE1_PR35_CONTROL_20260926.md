@@ -115,6 +115,12 @@ Before plugin integration or NPU work, the host owner must confirm:
     `3,7,11,15,19,23,27,31,35,39`, 512 global channels per tensor, and 256
     channels per TP2 rank. Linear-attention layers must not be admitted to the
     provider.
+12. Which BF16-to-C8 profile delivery route owns the pre-provider C8 selection:
+    a ModelSlim-compatible BF16+C8 sidecar/checkpoint artifact for the shortest
+    correctness baseline, or a new Host-owned external scale-source hook for
+    the long-term plugin route. The startup-order and implementation tradeoff
+    are recorded in
+    [`BF16_C8_PROFILE_DELIVERY_DECISION_20260926.md`](BF16_C8_PROFILE_DELIVERY_DECISION_20260926.md).
 
 ## Allowed work before confirmation
 
