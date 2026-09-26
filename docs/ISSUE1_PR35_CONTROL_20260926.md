@@ -100,6 +100,12 @@ Before plugin integration or NPU work, the host owner must confirm:
    source configures PR #35 only through checkpoint metadata declaring
    `kv_cache_type=C8`; plugin enablement alone cannot make the BF16 path C8.
    See [`BF16_C8_REACHABILITY_AUDIT_20260926.md`](BF16_C8_REACHABILITY_AUDIT_20260926.md).
+9. Which revision-bound calibration profile or Host-owned scale source supplies
+   the exact BF16 target's K/V scales. Runtime `calculate_kv_scales` is disabled
+   on Ascend, and default `1/0` parameters are not correctness evidence.
+10. Whether the correctness candidate accepts only zero offsets. The current
+    cache writer adds offsets while the dense fallback does not subtract them;
+    nonzero offsets must fail closed until the Host paths share one formula.
 
 ## Allowed work before confirmation
 
@@ -130,7 +136,7 @@ Before plugin integration or NPU work, the host owner must confirm:
 | --- | --- | --- |
 | H0 | Publish this PR #35-to-owner-decision mapping in Issue #1 | Issue reply links the exact PR head and separates resolved candidate work from pending host decisions |
 | H1 | Source-only target/mode dependency audit | Every Qwen3.5/TP2/APC/MTP2/async/FULL_AND_PIECEWISE dependency is mapped to source, test, unknown, or blocker in [`QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md`](QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md) |
-| H2 | Host CI and BF16-to-C8 reachability | Baseline mypy gate is closed; exact BF16 target can construct the reviewed paged-INT8 request without substituting a different model |
+| H2 | Host CI and BF16-to-C8 reachability | Baseline mypy gate is closed; a revision-bound, TP2-sharded scale profile or accepted Host scale source lets the exact BF16 target construct the reviewed paged-INT8 request without substituting a different model |
 | H3 | Host/provider and plugin-manager candidate | Exact Host/provider revisions are pinned; manager enablement reaches the provider; disabled and unsupported paths fail closed |
 | H4 | Real-device correctness | Pinned BF16 model/source/config passes APC/MTP2/async/hybrid-cache/output/graph capture-replay/cleanup gates |
 | H5 | Performance validation | Only after H4; preregistered matched runs may measure TTFT/TPOT, throughput, memory, and conversion cost |

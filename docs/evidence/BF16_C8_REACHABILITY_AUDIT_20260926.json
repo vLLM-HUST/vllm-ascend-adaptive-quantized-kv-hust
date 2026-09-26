@@ -1,0 +1,155 @@
+{
+  "classification": "read-only-pinned-source-and-model-manifest-audit",
+  "findings": [
+    {
+      "evidence": [
+        {
+          "blob_sha256": "c3db8410e4bb3e8f05e9344fcaca993bcc2d5e56ae417cff21aaf7bd2f9abdb1",
+          "end_line": 852,
+          "path": "vllm_ascend/quantization/configs/modelslim_config.py",
+          "start_line": 754,
+          "symbol": "AscendModelSlimConfig.maybe_update_config"
+        },
+        {
+          "blob_sha256": "c3db8410e4bb3e8f05e9344fcaca993bcc2d5e56ae417cff21aaf7bd2f9abdb1",
+          "end_line": 946,
+          "path": "vllm_ascend/quantization/configs/modelslim_config.py",
+          "start_line": 928,
+          "symbol": "AscendModelSlimConfig._add_kvcache_quant_metadata"
+        }
+      ],
+      "id": "checkpoint-metadata-gate",
+      "status": "confirmed-in-pinned-source",
+      "summary": "Dense C8 is selected from ModelSlim metadata loaded from the model directory; layers are admitted only when kv_cache_type is C8 and a k_proj.kv_cache_scale key identifies the layer."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "663f2c0dd92400b7c2c4247735a7340553f8309c89d3081e80b0bd6ca514939a",
+          "end_line": 139,
+          "path": "vllm_ascend/quantization/methods/kv_cache/kv_c8.py",
+          "start_line": 119,
+          "symbol": "AscendC8KVCacheAttentionMethod.create_weights"
+        },
+        {
+          "blob_sha256": "663f2c0dd92400b7c2c4247735a7340553f8309c89d3081e80b0bd6ca514939a",
+          "end_line": 147,
+          "path": "vllm_ascend/quantization/methods/kv_cache/kv_c8.py",
+          "start_line": 141,
+          "symbol": "AscendC8KVCacheAttentionMethod.process_weights_after_loading"
+        }
+      ],
+      "id": "provider-is-downstream-of-c8-weight-setup",
+      "status": "confirmed-in-pinned-source",
+      "summary": "The provider is configured only after C8 weight setup. Missing checkpoint scales leave one/zero initialization; provider activation does not calibrate or validate those values."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "5469e6c5e8ad545ffb6958f909c1c6748f03eda6ef52cb1221c91c99282b6532",
+          "end_line": 871,
+          "path": "vllm_ascend/platform.py",
+          "start_line": 643,
+          "symbol": "_fix_incompatible_config"
+        }
+      ],
+      "id": "runtime-scale-calculation-disabled",
+      "status": "confirmed-in-pinned-source",
+      "summary": "Ascend explicitly resets calculate_kv_scales to false, so the standard BF16 target cannot close the scale contract through the upstream runtime option."
+    },
+    {
+      "evidence": [
+        {
+          "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
+          "end_line": 1710,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 1689,
+          "symbol": "AscendC8AttentionBackendImpl._quantize_kv_to_int8"
+        },
+        {
+          "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
+          "end_line": 1687,
+          "path": "vllm_ascend/attention/attention_v1.py",
+          "start_line": 1641,
+          "symbol": "AscendC8AttentionBackendImpl._dequant_paged_kv_to_dense"
+        }
+      ],
+      "id": "offset-contract-is-symmetric-only",
+      "status": "confirmed-in-pinned-source",
+      "summary": "Cache write adds configured offsets, while the dense fallback dequantizes with scale only. Correctness therefore requires zero offsets until both native and fallback paths share an asymmetric dequantization contract."
+    }
+  ],
+  "host": {
+    "repository": "vLLM-HUST/vllm-ascend-hust",
+    "revision": "11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e"
+  },
+  "limitations": [
+    "The model file list is a retained manifest observation for the exact public model revision; the audit does not download model tensors.",
+    "No Host module was imported and no runtime, service, or NPU path ran.",
+    "The audit proves a reachability blocker, not numerical quality or performance."
+  ],
+  "model": {
+    "files": [
+      ".gitattributes",
+      "LICENSE",
+      "README.md",
+      "chat_template.jinja",
+      "config.json",
+      "generation_config.json",
+      "merges.txt",
+      "model.safetensors-00001-of-00014.safetensors",
+      "model.safetensors-00002-of-00014.safetensors",
+      "model.safetensors-00003-of-00014.safetensors",
+      "model.safetensors-00004-of-00014.safetensors",
+      "model.safetensors-00005-of-00014.safetensors",
+      "model.safetensors-00006-of-00014.safetensors",
+      "model.safetensors-00007-of-00014.safetensors",
+      "model.safetensors-00008-of-00014.safetensors",
+      "model.safetensors-00009-of-00014.safetensors",
+      "model.safetensors-00010-of-00014.safetensors",
+      "model.safetensors-00011-of-00014.safetensors",
+      "model.safetensors-00012-of-00014.safetensors",
+      "model.safetensors-00013-of-00014.safetensors",
+      "model.safetensors-00014-of-00014.safetensors",
+      "model.safetensors.index.json",
+      "preprocessor_config.json",
+      "tokenizer.json",
+      "tokenizer_config.json",
+      "video_preprocessor_config.json",
+      "vocab.json"
+    ],
+    "files_sha256": "2a40b7b5738cb677339a766b0ad5ea58f018ba66412a406acd88a8f01c087c2a",
+    "files_source": "https://huggingface.co/api/models/Qwen/Qwen3.5-35B-A3B/tree/59d61f3ce65a6d9863b86d2e96597125219dc754",
+    "has_modelslim_description": false,
+    "repository": "Qwen/Qwen3.5-35B-A3B",
+    "revision": "59d61f3ce65a6d9863b86d2e96597125219dc754"
+  },
+  "npu_started": false,
+  "performance_claim": false,
+  "required_closure": [
+    "Provide a model-revision-bound KV calibration profile with per-layer K/V scales and explicitly zero offsets, or implement and validate an equivalent Host-owned scale source.",
+    "Define TP2 sharding and cache-write ownership for that profile.",
+    "Keep the extension import_only until manager enablement reaches a provider with the pinned Host and scale profile and fails closed on identity or shape mismatch."
+  ],
+  "runtime_compatible": false,
+  "schema_version": "vllm-ascend-bf16-c8-reachability-audit/v1",
+  "source_audit_status": "BLOCKED_BEFORE_PROVIDER_REACHABILITY",
+  "sources": [
+    {
+      "blob_sha256": "c3db8410e4bb3e8f05e9344fcaca993bcc2d5e56ae417cff21aaf7bd2f9abdb1",
+      "path": "vllm_ascend/quantization/configs/modelslim_config.py"
+    },
+    {
+      "blob_sha256": "663f2c0dd92400b7c2c4247735a7340553f8309c89d3081e80b0bd6ca514939a",
+      "path": "vllm_ascend/quantization/methods/kv_cache/kv_c8.py"
+    },
+    {
+      "blob_sha256": "126f02e91d710d493d4319322d25ae6f02150b3a9ffc403218e530e17a7e8435",
+      "path": "vllm_ascend/attention/attention_v1.py"
+    },
+    {
+      "blob_sha256": "5469e6c5e8ad545ffb6958f909c1c6748f03eda6ef52cb1221c91c99282b6532",
+      "path": "vllm_ascend/platform.py"
+    }
+  ]
+}
