@@ -7,7 +7,7 @@ an NPU, start a service, or establish correctness or performance.
 
 - host base: `vLLM-HUST/vllm-ascend-hust@fbe4911bb54ce493b3fcbbf6238b032b9dc07ec6`;
 - candidate host contract: Draft PR #35 at
-  `674caa5260c4a518e743b6071adab7d3c36ebc34`;
+  `27032f3e611847784652503ade4270a1930f2bc4`;
 - required target: `Qwen3.5-35B-A3B`, TP2, APC, MTP2, async scheduling, and
   `FULL_AND_PIECEWISE`;
 - plugin state: `import_only`, no active provider.
@@ -28,7 +28,7 @@ host revision support the complete combination without changing its semantics.
 | MTP2 | Qwen3.5 MTP patch and speculative configuration are present | Exact target appears in MTP-related tests, but retained examples use MTP3 or disable prefix caching; no MTP2+C8 continuing-prefill test | Combination unknown | Freeze `num_speculative_tokens=2` and verify request metadata, accepted-token rollback, cache writes and provider output ownership |
 | Async scheduling | Scheduler/model-runner code contains Qwen3.5 and async handling | Async tests exist, but no exact-target APC+C8-provider+MTP2 combination | Combination unknown | Prove decode/prefill row ordering, cumulative Q lengths and KV lengths remain valid after async compaction/reuse |
 | `FULL_AND_PIECEWISE` | Hybrid/Mamba config enables this graph mode by default; PR #35 offers the provider before `full_graph_fia` while capturing and retains workspace tensors | Provider unit tests cover a mocked capture branch; exact target tests use either unspecified/default graph mode or `FULL_DECODE_ONLY` | Source-backed intent, real graph unverified | Confirm capture partition, replay lifetime, shape identity and disabled-path equivalence on the exact target |
-| Mixed decode/prefill batch | PR #35 slices prefill rows after `num_decodes` and leaves decode on native paged C8 | Synthetic classification tests cover one decode plus one cached prefill; no exact-target runtime test | Unit-test-backed only | Confirm scheduler ordering guarantee under MTP2+async and test mixed output assembly |
+| Mixed decode/prefill batch | PR #35 slices prefill rows after `num_decodes` and leaves decode on native paged C8 | CPU-only tests cover classification plus aligned slicing of query/output views, cumulative Q/KV lengths and block tables; no exact-target runtime test | Unit-test-backed only | Confirm scheduler ordering guarantee under MTP2+async and test mixed output assembly |
 | Provider implementation/kernel | PR #35 defines only discovery, request/result objects and host dispatch | No project provider or NPU kernel exists in the plugin | Blocking by design | Host owner accepts the interface; then separately review a project provider and native/fused implementation |
 | Host acceptance | PR #35 is open Draft | No host-owner review, accepted API revision or merge receipt | Blocking governance gate | Record architecture disposition, delivery owner and exact accepted revision in Issue #1/PR #35 |
 | Host CI | Static checks pass on the current PR head | CPU UT stops during import because `triton.runtime.jit` is unavailable, before candidate tests run | Environment gate open | Maintainer determines supported CI dependency fix and reruns the actual unit tests |

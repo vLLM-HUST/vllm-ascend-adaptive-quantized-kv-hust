@@ -117,7 +117,7 @@ not change any source finding or unblock S3/S4.
 
 Plugin Issue #1 accepts the CPU reference and evidence package as delivered.
 Host Draft PR #35 at
-`674caa5260c4a518e743b6071adab7d3c36ebc34` is the permitted minimal,
+`27032f3e611847784652503ade4270a1930f2bc4` is the permitted minimal,
 generic, default-off candidate interface. It resolves several source-level
 request, eligibility, fallback, mixed-batch, and workspace-lifetime questions,
 but it remains review input. Host interface delivery and final go/no-go remain

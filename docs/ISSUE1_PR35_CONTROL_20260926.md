@@ -39,7 +39,7 @@ owner and maintainers.
 Draft PR
 [`vLLM-HUST/vllm-ascend-hust#35`](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35)
 is currently pinned here at
-`674caa5260c4a518e743b6071adab7d3c36ebc34`. Its candidate source addresses:
+`27032f3e611847784652503ade4270a1930f2bc4`. Its candidate source addresses:
 
 1. Default-off `module:factory` provider discovery instead of a project-specific
    import or monkey patch.
@@ -56,6 +56,9 @@ is currently pinned here at
 6. Output and workspace lifetime retention needed by capture-sensitive code.
 7. A default-disabled path intended to preserve current host behavior when the
    provider is not configured.
+8. A CPU-only mixed-batch contract test now locks the decode-row removal and
+   corresponding query/output, cumulative-length, KV-length, and block-table
+   slicing assumptions.
 
 These are source-level properties of the candidate, not an accepted public API
 or a real-device result.
