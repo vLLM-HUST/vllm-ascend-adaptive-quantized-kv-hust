@@ -8,7 +8,7 @@ an NPU, start a service, or establish correctness or performance.
 - host base: `vLLM-HUST/vllm-ascend-hust@fbe4911bb54ce493b3fcbbf6238b032b9dc07ec6`;
 - candidate host contract: Draft PR #35 at
   `11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e`, rebased onto that host base;
-- required target: `Qwen3.5-35B-A3B`, TP2, APC, MTP2, async scheduling, and
+- required target: `Qwen3.5-35B-A3B` BF16, TP2, APC, MTP2, async scheduling, and
   `FULL_AND_PIECEWISE`;
 - plugin state: `import_only`, no active provider.
 
@@ -20,16 +20,16 @@ host revision support the complete combination without changing its semantics.
 
 | Dependency | Source evidence | Test evidence | Classification | Required closure |
 | --- | --- | --- | --- | --- |
-| Exact model family | `patch_qwen3_5.py` patches Qwen3.5 decoder and MTP behavior; hybrid-cache code names Qwen3.5 explicitly | Exact `Qwen/Qwen3.5-35B-A3B` appears in four-card and speculative-decode tests | Source-backed, partly test-backed | Pin the exact model revision/artifact used for C8 validation |
+| Exact model family | `patch_qwen3_5.py` patches Qwen3.5 decoder and MTP behavior; hybrid-cache code names Qwen3.5 explicitly | Exact BF16 `Qwen/Qwen3.5-35B-A3B` appears in four-card and speculative-decode tests | Source-backed, partly test-backed | Pin the exact BF16 model revision/artifact |
 | TP2 | Generic provider config uses TP-local head counts, scales and offsets | Exact-model TP2 appears in `test_qwen3_5_35b_a3b_w8a8.py`; another exact-model test uses DP2/TP2 | Test-backed separately | Confirm the C8 artifact's TP-local scale/offset shapes and shard ownership |
-| C8 KV on the exact target | PR #35 is wired only through `AscendC8AttentionBackendImpl` and C8 weight processing | Provider unit tests use synthetic C8 tensors; the target TP2 test configures W8A8 weights but does not prove C8 KV/provider dispatch | Blocking unknown | Provide the exact C8 checkpoint URI/revision plus quantization-description and weight-index hashes |
+| C8 KV on the exact target | PR #35 is wired only through `AscendC8AttentionBackendImpl`; that implementation is selected by checkpoint quantization metadata with `kv_cache_type=C8` and loaded scale/offset weights | Provider unit tests use synthetic C8 tensors; the exact BF16 target test has no C8 metadata, while the separate TP2 test uses W8A8 weights | Blocking reachability mismatch | Define the BF16-weight plus INT8-KV scale/offset and cache-write route; do not substitute the W8A8/C8 checkpoint |
 | Hybrid attention/Mamba model | Qwen3.5 uses patched hybrid attention/Mamba configuration and page-alignment logic | Qwen3.5 hybrid tests exist, but no C8-provider test covers recurrent-state and attention-cache interaction | Unknown | Host owner confirms provider scope is full-attention layers only and hybrid cache bookkeeping remains correct |
 | APC | Provider eligibility recognizes cached multi-token prefill by `query_length > 1` and `kv_length > query_length`; hybrid config has explicit prefix-cache alignment behavior | APC tests exist for other Qwen3.5 variants/platforms; no exact-target C8-provider APC test | Source-backed intent, combination untested | Define the exact two-request prefix-hit fixture and prove provider dispatch only on the second continuing-prefill request |
 | MTP2 | Qwen3.5 MTP patch and speculative configuration are present | Exact target appears in MTP-related tests, but retained examples use MTP3 or disable prefix caching; no MTP2+C8 continuing-prefill test | Combination unknown | Freeze `num_speculative_tokens=2` and verify request metadata, accepted-token rollback, cache writes and provider output ownership |
 | Async scheduling | Scheduler/model-runner code contains Qwen3.5 and async handling | Async tests exist, but no exact-target APC+C8-provider+MTP2 combination | Combination unknown | Prove decode/prefill row ordering, cumulative Q lengths and KV lengths remain valid after async compaction/reuse |
 | `FULL_AND_PIECEWISE` | Hybrid/Mamba config enables this graph mode by default; PR #35 offers the provider before `full_graph_fia` while capturing and retains workspace tensors | Provider unit tests cover a mocked capture branch; exact target tests use either unspecified/default graph mode or `FULL_DECODE_ONLY` | Source-backed intent, real graph unverified | Confirm capture partition, replay lifetime, shape identity and disabled-path equivalence on the exact target |
 | Mixed decode/prefill batch | PR #35 slices prefill rows after `num_decodes` and leaves decode on native paged C8 | CPU-only tests cover classification plus aligned slicing of query/output views, cumulative Q/KV lengths and block tables; no exact-target runtime test | Unit-test-backed only | Confirm scheduler ordering guarantee under MTP2+async and test mixed output assembly |
-| Provider implementation/kernel | PR #35 defines only discovery, request/result objects and host dispatch | No project provider or NPU kernel exists in the plugin | Blocking by design | Host owner accepts the interface; then separately review a project provider and native/fused implementation |
+| Provider implementation/kernel | PR #35 defines only discovery, request/result objects and host dispatch | No project provider or NPU kernel exists in the plugin | Required implementation | Add a lazy, fail-closed provider and prove manager enablement reaches it before active publication |
 | Host acceptance | PR #35 is open Draft | No host-owner review, accepted API revision or merge receipt | Blocking governance gate | Record architecture disposition, delivery owner and exact accepted revision in Issue #1/PR #35 |
 | Host CI | Ruff, format and focused syntax checks pass on the current PR head | E2E pre-commit stops in unchanged `tests/ut/worker/test_model_runner_v1.py`: its local `V41CacheLayer` test double has no typed `kv_cache` attribute; candidate CPU UT is then skipped | Baseline type gate open | Land or identify the host-main mypy fix, rebase if needed, and rerun the candidate unit tests |
 
@@ -53,7 +53,8 @@ H2 can close only when the host owner or assigned maintainer records all of:
 
 1. accept/revise/replace disposition for the provider architecture;
 2. final host delivery owner and exact accepted host revision;
-3. exact C8 `Qwen3.5-35B-A3B` artifact identity and supported hardware;
+3. exact BF16 `Qwen3.5-35B-A3B` artifact identity, supported hardware, and the
+   reviewed route that creates its INT8 KV scales/offsets and paged cache;
 4. whether full-attention-only provider scope is correct for the hybrid model;
 5. required APC, MTP2, async and `FULL_AND_PIECEWISE` semantics;
 6. capture/replay workspace and failure/fallback requirements;
@@ -75,4 +76,5 @@ order on an assigned idle device:
 
 Every stage requires pinned model/source/config identities and dense-baseline
 output agreement. Timing starts only after the complete correctness sequence
-passes. No part of this matrix should be executed while Issue #1 remains at H1.
+passes. No part of this matrix should be executed before H3 pins an enableable
+Host/provider/plugin candidate and its fail-closed activation contract.

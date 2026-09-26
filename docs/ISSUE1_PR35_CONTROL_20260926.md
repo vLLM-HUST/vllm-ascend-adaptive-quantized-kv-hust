@@ -9,14 +9,23 @@ invalidate historical evidence.
 The CPU reference and the existing evidence package are accepted as delivered.
 The next host validation target is fixed to:
 
-- model: `Qwen3.5-35B-A3B`;
+- model: `Qwen3.5-35B-A3B` BF16;
 - tensor parallelism: `TP2`;
 - required retained behavior: APC, MTP2, async scheduling, and
   `FULL_AND_PIECEWISE` graph mode.
 
-Until host-interface review and real-device correctness validation complete,
-the plugin remains `import_only` and fail closed. No runtime activation, model
-service, operator retry, performance test, or performance claim is allowed.
+The released/default plugin remains `import_only` and fail closed until the
+Host/provider revision and manager-activation contract pass off-device review.
+An opt-in active candidate is then required for H4 correctness. No model
+service, operator retry, performance test, or performance claim is allowed
+before its stage gate.
+
+The owner follow-up on 2026-09-26 asks the existing PRs to produce an actually
+usable Host/provider version that the extension manager can enable, then prove
+the complete target's correctness. Performance validation remains owner-gated
+after that evidence. The current `import_only` state is still correct while the
+provider and activation contract are incomplete; it is now a staging state,
+not a direction to stop implementation.
 
 ## Ownership boundary
 
@@ -25,9 +34,10 @@ service, operator retry, performance test, or performance claim is allowed.
 | Final host route and go/no-go | Shuhao / host owner | Selects or rejects the host integration route and exact accepted host revision |
 | Host interface delivery | Shuhao / assigned host maintainer | Remains host-owned; it is not transferred to the plugin project |
 | Candidate host contract | XilingGao, through Draft PR #35 | Review input only: minimal, generic, default-off implementation allowed by the 2026-09-20 correction |
-| Plugin contracts and adapter | XilingGao | May proceed off-device only after the accepted host boundary is explicit |
+| Plugin contracts and adapter | XilingGao | May implement the reviewed candidate off-device, but must prove target reachability before activation |
 | CPU reference, tests, and evidence | XilingGao | Delivered; may be maintained without implying NPU support |
-| Runtime activation and performance evidence | Joint gated delivery | Blocked until accepted host revision and real-device gates pass |
+| Correctness-only activation | XilingGao plus host review | Allowed only at H3 for the pinned candidate; remains opt-in and fail closed |
+| Performance evidence | Shuhao / owner-gated delivery | Blocked until the complete H4 correctness matrix passes |
 
 Draft PR #35 therefore does not contradict host ownership. It is a candidate
 implementation submitted for CODEOWNERS/maintainer review. Acceptance, adoption,
@@ -83,8 +93,13 @@ Before plugin integration or NPU work, the host owner must confirm:
 6. The provider/kernel delivery route. PR #35 does not contain a project
    provider, a native paged-INT8 continuing-prefill operator, or activation.
 7. How to resolve the current CPU-UT CI environment failure before treating
-   the PR as validated. The observed failure occurs during import because
-   `triton.runtime.jit` is unavailable, before the candidate unit tests run.
+   the PR as validated. The current failure is a mypy error in unchanged
+   `tests/ut/worker/test_model_runner_v1.py`, whose local `V41CacheLayer` test
+   double lacks a typed `kv_cache` attribute; candidate CPU tests are skipped.
+8. How the standard BF16 target reaches C8 storage and the provider. Current
+   source configures PR #35 only through checkpoint metadata declaring
+   `kv_cache_type=C8`; plugin enablement alone cannot make the BF16 path C8.
+   See [`BF16_C8_REACHABILITY_AUDIT_20260926.md`](BF16_C8_REACHABILITY_AUDIT_20260926.md).
 
 ## Allowed work before confirmation
 
@@ -92,12 +107,16 @@ Before plugin integration or NPU work, the host owner must confirm:
 - Audit the exact host source for target-model and required-mode dependencies.
 - Add fail-closed, CPU-only fixtures and contract tests that do not claim host
   acceptance or runtime reachability.
+- Implement a lazy, default-off provider candidate and its manager-activation
+  contract off-device, while retaining `import_only` until target reachability
+  and activation tests are complete.
 - Preserve the delivered CPU reference and historical evidence.
 - Prepare a bounded real-device correctness matrix without executing it.
 
 ## Prohibited work before confirmation
 
-- Do not activate the plugin or change the `import_only` manifest.
+- Do not change `import_only`, publish an active wheel, or run a service before
+  the H3 provider/manager contract is complete and pinned for correctness.
 - Do not start a model service, reserve an NPU, run an operator probe, or repeat
   previously failed native operator calls.
 - Do not publish performance, memory, graph, or quality claims.
@@ -111,9 +130,9 @@ Before plugin integration or NPU work, the host owner must confirm:
 | --- | --- | --- |
 | H0 | Publish this PR #35-to-owner-decision mapping in Issue #1 | Issue reply links the exact PR head and separates resolved candidate work from pending host decisions |
 | H1 | Source-only target/mode dependency audit | Every Qwen3.5/TP2/APC/MTP2/async/FULL_AND_PIECEWISE dependency is mapped to source, test, unknown, or blocker in [`QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md`](QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md) |
-| H2 | Host review and adoption | Host owner records route, owner, required changes, and exact accepted host revision |
-| H3 | Plugin adapter and offline contract tests | Adapter targets only the accepted API; disabled path and unsupported cases fail closed |
-| H4 | Real-device correctness | Pinned model/source/config passes provenance, baseline matching, output, graph capture/replay, and cleanup gates |
+| H2 | Host CI and BF16-to-C8 reachability | Baseline mypy gate is closed; exact BF16 target can construct the reviewed paged-INT8 request without substituting a different model |
+| H3 | Host/provider and plugin-manager candidate | Exact Host/provider revisions are pinned; manager enablement reaches the provider; disabled and unsupported paths fail closed |
+| H4 | Real-device correctness | Pinned BF16 model/source/config passes APC/MTP2/async/hybrid-cache/output/graph capture-replay/cleanup gates |
 | H5 | Performance validation | Only after H4; preregistered matched runs may measure TTFT/TPOT, throughput, memory, and conversion cost |
 
 ## Stop conditions
