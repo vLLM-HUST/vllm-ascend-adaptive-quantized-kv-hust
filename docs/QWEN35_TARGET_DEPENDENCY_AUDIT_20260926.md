@@ -31,7 +31,7 @@ host revision support the complete combination without changing its semantics.
 | Mixed decode/prefill batch | PR #35 slices prefill rows after `num_decodes` and leaves decode on native paged C8 | CPU-only tests cover classification plus aligned slicing of query/output views, cumulative Q/KV lengths and block tables; no exact-target runtime test | Unit-test-backed only | Confirm scheduler ordering guarantee under MTP2+async and test mixed output assembly |
 | Provider implementation/kernel | PR #35 defines only discovery, request/result objects and host dispatch | No project provider or NPU kernel exists in the plugin | Blocking by design | Host owner accepts the interface; then separately review a project provider and native/fused implementation |
 | Host acceptance | PR #35 is open Draft | No host-owner review, accepted API revision or merge receipt | Blocking governance gate | Record architecture disposition, delivery owner and exact accepted revision in Issue #1/PR #35 |
-| Host CI | Static checks pass on the current PR head | CPU UT stops during import because `triton.runtime.jit` is unavailable, before candidate tests run | Environment gate open | Maintainer determines supported CI dependency fix and reruns the actual unit tests |
+| Host CI | Ruff, format and focused syntax checks pass on the current PR head | E2E pre-commit stops in unchanged `tests/ut/worker/test_model_runner_v1.py`: its local `V41CacheLayer` test double has no typed `kv_cache` attribute; candidate CPU UT is then skipped | Baseline type gate open | Land or identify the host-main mypy fix, rebase if needed, and rerun the candidate unit tests |
 
 ## What PR #35 can already establish
 
