@@ -93,9 +93,10 @@ Before plugin integration or NPU work, the host owner must confirm:
 6. The provider/kernel delivery route. PR #35 does not contain a project
    provider, a native paged-INT8 continuing-prefill operator, or activation.
 7. How to resolve the current CPU-UT CI environment failure before treating
-   the PR as validated. The current failure is a mypy error in unchanged
-   `tests/ut/worker/test_model_runner_v1.py`, whose local `V41CacheLayer` test
-   double lacks a typed `kv_cache` attribute; candidate CPU tests are skipped.
+   the PR as validated. Test-only PR #37 closes the unchanged `V41CacheLayer`
+   mypy declaration and passes pre-commit. Its CPU UT then reaches collection
+   but fails because the CI image cannot import `triton.runtime.jit`; this is
+   still upstream of provider tests and must not be reported as their result.
 8. How the standard BF16 target reaches C8 storage and the provider. Current
    source configures PR #35 only through checkpoint metadata declaring
    `kv_cache_type=C8`; plugin enablement alone cannot make the BF16 path C8.
@@ -106,6 +107,11 @@ Before plugin integration or NPU work, the host owner must confirm:
 10. Whether the correctness candidate accepts only zero offsets. The current
     cache writer adds offsets while the dense fallback does not subtract them;
     nonzero offsets must fail closed until the Host paths share one formula.
+11. Whether the supplied profile matches the pinned hybrid model exactly: C8
+    metadata only for full-attention layers
+    `3,7,11,15,19,23,27,31,35,39`, 512 global channels per tensor, and 256
+    channels per TP2 rank. Linear-attention layers must not be admitted to the
+    provider.
 
 ## Allowed work before confirmation
 
@@ -136,7 +142,7 @@ Before plugin integration or NPU work, the host owner must confirm:
 | --- | --- | --- |
 | H0 | Publish this PR #35-to-owner-decision mapping in Issue #1 | Issue reply links the exact PR head and separates resolved candidate work from pending host decisions |
 | H1 | Source-only target/mode dependency audit | Every Qwen3.5/TP2/APC/MTP2/async/FULL_AND_PIECEWISE dependency is mapped to source, test, unknown, or blocker in [`QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md`](QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md) |
-| H2 | Host CI and BF16-to-C8 reachability | Baseline mypy gate is closed; a revision-bound, TP2-sharded scale profile or accepted Host scale source lets the exact BF16 target construct the reviewed paged-INT8 request without substituting a different model |
+| H2 | Host CI and BF16-to-C8 reachability | PR #37 is landed and the Host CPU-UT environment can collect tests; a revision-bound scale profile or accepted Host scale source covers exactly the ten full-attention layers with 512 global/256 TP2-local channels, zero offsets and calibration provenance, allowing the exact BF16 target to construct the reviewed paged-INT8 request without substituting a different model |
 | H3 | Host/provider and plugin-manager candidate | Exact Host/provider revisions are pinned; manager enablement reaches the provider; disabled and unsupported paths fail closed |
 | H4 | Real-device correctness | Pinned BF16 model/source/config passes APC/MTP2/async/hybrid-cache/output/graph capture-replay/cleanup gates |
 | H5 | Performance validation | Only after H4; preregistered matched runs may measure TTFT/TPOT, throughput, memory, and conversion cost |
