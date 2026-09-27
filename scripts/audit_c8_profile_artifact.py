@@ -144,7 +144,48 @@ def _load_header(path: Path) -> tuple[int, dict[str, Any]]:
         raise AuditError(f"invalid safetensors header in {path.name}") from error
     if not isinstance(header, dict):
         raise AuditError(f"invalid safetensors header object in {path.name}")
-    return 8 + length, header
+    data_start = 8 + length
+    _validate_header_ranges(path, data_start, header)
+    return data_start, header
+
+
+def _validate_header_ranges(
+    path: Path,
+    data_start: int,
+    header: dict[str, Any],
+) -> None:
+    data_size = path.stat().st_size - data_start
+    if data_size < 0:
+        raise AuditError(f"safetensors header exceeds file size in {path.name}")
+    ranges: list[tuple[int, int, str]] = []
+    for name, metadata in header.items():
+        if name == "__metadata__":
+            continue
+        if not isinstance(metadata, dict):
+            raise AuditError(f"invalid tensor metadata for {name!r} in {path.name}")
+        offsets = metadata.get("data_offsets")
+        if (
+            not isinstance(offsets, list)
+            or len(offsets) != 2
+            or any(type(value) is not int for value in offsets)
+        ):
+            raise AuditError(f"invalid tensor offsets for {name!r} in {path.name}")
+        start, end = offsets
+        if start < 0 or end < start or end > data_size:
+            raise AuditError(
+                f"tensor range is outside shard data for {name!r} in {path.name}"
+            )
+        ranges.append((start, end, name))
+    previous_end = 0
+    previous_name: str | None = None
+    for start, end, name in sorted(ranges):
+        if start < previous_end:
+            raise AuditError(
+                f"overlapping tensor ranges in {path.name}: "
+                f"{previous_name!r} and {name!r}"
+            )
+        previous_end = end
+        previous_name = name
 
 
 def _decode_values(dtype: str, raw: bytes) -> list[float]:

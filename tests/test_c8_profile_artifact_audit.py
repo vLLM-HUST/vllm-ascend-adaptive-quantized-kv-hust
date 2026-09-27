@@ -33,6 +33,16 @@ def _write_safetensors(path: Path, tensors: dict[str, bytes]) -> None:
     path.write_bytes(struct.pack("<Q", len(encoded)) + encoded + data)
 
 
+def _rewrite_safetensors_header(path: Path, header: dict[str, object]) -> None:
+    raw = path.read_bytes()
+    old_length = struct.unpack("<Q", raw[:8])[0]
+    data = raw[8 + old_length :]
+    encoded = json.dumps(header, separators=(",", ":")).encode()
+    padding = (-len(encoded)) % 8
+    encoded += b" " * padding
+    path.write_bytes(struct.pack("<Q", len(encoded)) + encoded + data)
+
+
 def _write_fixture(
     model_dir: Path,
     *,
@@ -290,4 +300,32 @@ def test_duplicate_safetensors_header_key_fails_closed(tmp_path: Path) -> None:
     shard.write_bytes(struct.pack("<Q", len(rewritten)) + rewritten + data)
 
     with pytest.raises(AuditError, match=f"duplicate key {tensor_name!r}"):
+        audit_profile(tmp_path, label="fixture")
+
+
+def test_overlapping_safetensors_ranges_fail_closed(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    shard = tmp_path / "model-00001-of-00001.safetensors"
+    raw = shard.read_bytes()
+    header_length = struct.unpack("<Q", raw[:8])[0]
+    header = json.loads(raw[8 : 8 + header_length])
+    tensor_names = [name for name in header if name != "__metadata__"]
+    header[tensor_names[1]]["data_offsets"] = header[tensor_names[0]]["data_offsets"]
+    _rewrite_safetensors_header(shard, header)
+
+    with pytest.raises(AuditError, match="overlapping tensor ranges"):
+        audit_profile(tmp_path, label="fixture")
+
+
+def test_out_of_bounds_safetensors_range_fails_closed(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    shard = tmp_path / "model-00001-of-00001.safetensors"
+    raw = shard.read_bytes()
+    header_length = struct.unpack("<Q", raw[:8])[0]
+    header = json.loads(raw[8 : 8 + header_length])
+    tensor_name = next(name for name in header if name != "__metadata__")
+    header[tensor_name]["data_offsets"] = [0, len(raw) * 2]
+    _rewrite_safetensors_header(shard, header)
+
+    with pytest.raises(AuditError, match="outside shard data"):
         audit_profile(tmp_path, label="fixture")

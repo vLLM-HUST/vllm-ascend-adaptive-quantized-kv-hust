@@ -40,10 +40,11 @@ the same tensors are repacked into different safetensors shards. It does not
 establish calibration quality; provenance and correctness gates remain
 separate requirements.
 
-The artifact audit also rejects duplicate/non-finite JSON and any absolute or
-parent-traversing shard path before reading tensor bytes. These checks protect
-the receipt boundary only; they do not make an untrusted model artifact safe
-to execute.
+The artifact audit also rejects duplicate/non-finite JSON, ambiguous
+safetensors headers, overlapping/out-of-bounds tensor ranges, and any absolute
+or parent-traversing shard path before reading tensor bytes. These checks
+protect the receipt boundary only; they do not make an untrusted model artifact
+safe to execute.
 
 ## Boundary
 
