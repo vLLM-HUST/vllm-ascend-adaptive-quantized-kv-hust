@@ -18,6 +18,13 @@ CPU 参考实现已通过插件 PR #3 合入，提交为
 [`ISSUE1_PR35_CONTROL_20260926.md`](docs/ISSUE1_PR35_CONTROL_20260926.md)
 为准。
 
+自 2026-09-27 起，本扩展已不再展示于公开 MOD Workshop。恢复公开展示前，
+必须闭合与精确版本绑定的校准 profile、宿主已接纳且可达的 C8 路径、真实
+Extension Manager 与 NPU serving 回执、回滚和退出清理证据，并为质量和性能
+结论分别保留可追溯原始产物。仅能被发现或仅修改为 active manifest 不满足
+恢复条件。逐项证据清单见
+[`docs/PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md`](docs/PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md)。
+
 当前版本不会自动激活运行时逻辑，不会 patch vLLM 或 vLLM Ascend，不会启动
 模型服务，也不声明性能收益。现有宿主基线尚未提供本插件需要的已评审接口，
 所以安装后保持惰性是有意设计的结果。

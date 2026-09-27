@@ -31,6 +31,14 @@ The CPU reference delivery was merged through plugin PR #3 at
 ownership boundary, including the status of host Draft PR #35, is controlled by
 [`docs/ISSUE1_PR35_CONTROL_20260926.md`](docs/ISSUE1_PR35_CONTROL_20260926.md).
 
+As of 2026-09-27, the extension is not listed on the public MOD Workshop. The
+owner requires a revision-bound calibrated profile, an accepted and reachable
+Host C8 path, real Extension Manager and NPU serving receipts, rollback and
+cleanup evidence, and separately traceable quality/performance artifacts before
+any request to restore the public surface. Package discovery or an active
+manifest alone is not sufficient. The auditable checklist is
+[`docs/PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md`](docs/PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md).
+
 ## Delivery policy
 
 This organization plugin is the project implementation carrier. A later owner
