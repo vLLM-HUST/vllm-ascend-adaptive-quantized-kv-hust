@@ -203,6 +203,18 @@ def test_missing_profile_tensor_fails_closed(tmp_path: Path) -> None:
         audit_profile(tmp_path, label="fixture")
 
 
+def test_weight_map_profile_names_must_match_description(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    index_path = tmp_path / "model.safetensors.index.json"
+    index = json.loads(index_path.read_text())
+    shard_name = next(iter(index["weight_map"].values()))
+    index["weight_map"]["model.layers.99.self_attn.k_proj.kv_cache_scale"] = shard_name
+    index_path.write_text(json.dumps(index))
+
+    with pytest.raises(AuditError, match=r"unexpected=.*layers\.99"):
+        audit_profile(tmp_path, label="fixture")
+
+
 def test_hybrid_profile_covers_only_full_attention_layers(tmp_path: Path) -> None:
     _write_fixture(tmp_path, hybrid=True)
 
@@ -224,6 +236,12 @@ def test_missing_hybrid_attention_layer_fails_closed(tmp_path: Path) -> None:
         if name.startswith("model.layers.3."):
             del description[name]
     description_path.write_text(json.dumps(description))
+    index_path = tmp_path / "model.safetensors.index.json"
+    index = json.loads(index_path.read_text())
+    for name in list(index["weight_map"]):
+        if name.startswith("model.layers.3."):
+            del index["weight_map"][name]
+    index_path.write_text(json.dumps(index))
 
     with pytest.raises(AuditError, match=r"missing=\[3\]"):
         audit_profile(tmp_path, label="hybrid-fixture")
@@ -233,12 +251,16 @@ def test_profile_on_linear_attention_layer_fails_closed(tmp_path: Path) -> None:
     _write_fixture(tmp_path, hybrid=True)
     description_path = tmp_path / "quant_model_description.json"
     description = json.loads(description_path.read_text())
+    index_path = tmp_path / "model.safetensors.index.json"
+    index = json.loads(index_path.read_text())
     for kind in ("k", "v"):
         for field in ("scale", "offset"):
             source = f"model.layers.1.self_attn.{kind}_proj.kv_cache_{field}"
             target = f"model.layers.0.self_attn.{kind}_proj.kv_cache_{field}"
             description[target] = description[source]
+            index["weight_map"][target] = index["weight_map"][source]
     description_path.write_text(json.dumps(description))
+    index_path.write_text(json.dumps(index))
 
     with pytest.raises(AuditError, match=r"unexpected=\[0\]"):
         audit_profile(tmp_path, label="hybrid-fixture")

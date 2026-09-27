@@ -308,6 +308,19 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
             raise AuditError(
                 f"layer {layer} has incomplete profile fields: {sorted(fields)}"
             )
+    declared_profile_names = {
+        name for fields in profile_names.values() for name in fields.values()
+    }
+    indexed_profile_names = {
+        name for name in weight_map if KV_NAME.fullmatch(name) is not None
+    }
+    if indexed_profile_names != declared_profile_names:
+        missing = sorted(declared_profile_names - indexed_profile_names)
+        unexpected = sorted(indexed_profile_names - declared_profile_names)
+        raise AuditError(
+            "profile tensor names differ between description and weight_map: "
+            f"missing={missing}, unexpected={unexpected}"
+        )
     covered_layers = sorted(profile_names)
     if covered_layers != expected_attention_layers:
         missing = sorted(set(expected_attention_layers) - set(covered_layers))
