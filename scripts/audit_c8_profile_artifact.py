@@ -24,10 +24,31 @@ class AuditError(RuntimeError):
     """Raised when an artifact cannot satisfy the profile contract."""
 
 
+def _reject_constant(value: str) -> None:
+    raise AuditError(f"JSON contains non-finite value {value}")
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise AuditError(f"JSON contains duplicate key {key!r}")
+        result[key] = value
+    return result
+
+
 def _read_json(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        raw = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise AuditError(f"cannot read JSON file {path.name}: {error}") from error
+    try:
+        value = json.loads(
+            raw,
+            object_pairs_hook=_unique_object,
+            parse_constant=_reject_constant,
+        )
+    except json.JSONDecodeError as error:
         raise AuditError(f"cannot read JSON file {path.name}: {error}") from error
     if not isinstance(value, dict):
         raise AuditError(f"expected a JSON object in {path.name}")
@@ -89,6 +110,19 @@ def _index_path(model_dir: Path) -> Path:
             f"{[path.name for path in matches]}"
         )
     return matches[0]
+
+
+def _shard_path(model_dir: Path, shard_name: str) -> Path:
+    relative = Path(shard_name)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise AuditError(f"unsafe shard path in weight_map: {shard_name!r}")
+    root = model_dir.resolve()
+    path = (model_dir / relative).resolve()
+    if not path.is_relative_to(root):
+        raise AuditError(f"shard escapes model directory: {shard_name!r}")
+    if not path.is_file():
+        raise AuditError(f"profile shard is missing: {shard_name!r}")
+    return path
 
 
 def _load_header(path: Path) -> tuple[int, dict[str, Any]]:
@@ -247,7 +281,7 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
             shard_name = weight_map.get(name)
             if not isinstance(shard_name, str):
                 raise AuditError(f"profile tensor is absent from weight_map: {name}")
-            shard = model_dir / shard_name
+            shard = _shard_path(model_dir, shard_name)
             if shard_name not in headers:
                 headers[shard_name] = _load_header(shard)
             data_start, header = headers[shard_name]

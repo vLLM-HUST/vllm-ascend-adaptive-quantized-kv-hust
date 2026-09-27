@@ -196,3 +196,42 @@ def test_profile_on_linear_attention_layer_fails_closed(tmp_path: Path) -> None:
 
     with pytest.raises(AuditError, match=r"unexpected=\[0\]"):
         audit_profile(tmp_path, label="hybrid-fixture")
+
+
+def test_duplicate_json_key_fails_closed(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    description_path = tmp_path / "quant_model_description.json"
+    raw = description_path.read_text()
+    description_path.write_text(
+        raw.replace(
+            '"model_quant_type": "FLOAT"',
+            '"model_quant_type": "FLOAT", "model_quant_type": "FLOAT"',
+            1,
+        )
+    )
+
+    with pytest.raises(AuditError, match="duplicate key 'model_quant_type'"):
+        audit_profile(tmp_path, label="fixture")
+
+
+def test_non_finite_json_value_fails_closed(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    config_path = tmp_path / "config.json"
+    config = json.loads(config_path.read_text())
+    config["unexpected_non_finite"] = float("nan")
+    config_path.write_text(json.dumps(config))
+
+    with pytest.raises(AuditError, match="non-finite value NaN"):
+        audit_profile(tmp_path, label="fixture")
+
+
+def test_weight_map_cannot_escape_model_directory(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    index_path = tmp_path / "model.safetensors.index.json"
+    index = json.loads(index_path.read_text())
+    tensor_name = next(iter(index["weight_map"]))
+    index["weight_map"][tensor_name] = "../outside.safetensors"
+    index_path.write_text(json.dumps(index))
+
+    with pytest.raises(AuditError, match="unsafe shard path"):
+        audit_profile(tmp_path, label="fixture")
