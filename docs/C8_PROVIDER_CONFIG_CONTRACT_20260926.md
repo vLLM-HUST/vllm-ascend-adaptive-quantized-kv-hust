@@ -19,6 +19,13 @@ normalizes the Torch dtype through its stable string representation, and then
 feeds the existing fail-closed runtime comparison. It does not construct an
 attention provider or import Host/Torch.
 
+`ProviderConstructionContext.from_host_config` is the single construction
+entry point: it parses the canonical `provider_config_json`, derives the Host
+identity, validates the two together, and returns no context if either step
+fails. This prevents a future provider factory from parsing expectations but
+forgetting to bind them to the actual Host layer. The context still contains
+no loaded profile and grants no runtime eligibility by itself.
+
 ## Required document
 
 The schema is

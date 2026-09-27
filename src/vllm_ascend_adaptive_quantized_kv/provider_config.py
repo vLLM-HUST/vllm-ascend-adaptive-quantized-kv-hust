@@ -291,3 +291,18 @@ class ProviderActivationConfig:
         runtime = runtime_identity_from_host_config(config)
         self.validate_runtime(runtime)
         return runtime
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderConstructionContext:
+    """Atomically parsed activation expectations and validated Host identity."""
+
+    activation: ProviderActivationConfig
+    runtime: ProviderRuntimeIdentity
+
+    @classmethod
+    def from_host_config(cls, config: object) -> ProviderConstructionContext:
+        raw = _host_attribute(config, "provider_config_json")
+        activation = ProviderActivationConfig.from_json(raw)
+        runtime = activation.validate_host_config(config)
+        return cls(activation=activation, runtime=runtime)

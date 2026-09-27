@@ -7,6 +7,7 @@ from vllm_ascend_adaptive_quantized_kv.provider_config import (
     SCHEMA_VERSION,
     ProviderActivationConfig,
     ProviderConfigError,
+    ProviderConstructionContext,
     ProviderRuntimeIdentity,
     runtime_identity_from_host_config,
 )
@@ -59,6 +60,7 @@ def _host_config(**overrides: object) -> SimpleNamespace:
         "num_kv_heads": 1,
         "head_size": 256,
         "kv_cache_dtype": "torch.int8",
+        "provider_config_json": json.dumps(_payload()),
     }
     values.update(overrides)
     return SimpleNamespace(**values)
@@ -80,6 +82,29 @@ def test_host_config_adapter_derives_and_validates_runtime_identity() -> None:
     runtime = config.validate_host_config(host_config)
 
     assert runtime == _runtime()
+
+
+def test_construction_context_atomically_parses_and_validates_host_config() -> None:
+    context = ProviderConstructionContext.from_host_config(_host_config())
+
+    assert context.activation.expected_model == "Qwen/Qwen3.5-35B-A3B"
+    assert context.runtime == _runtime()
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"provider_config_json": ""}, "non-empty JSON text"),
+        ({"provider_config_json": "{}"}, "keys differ"),
+        ({"model": "other"}, "model mismatch"),
+        ({"kv_cache_dtype": "torch.bfloat16"}, "torch.int8"),
+    ],
+)
+def test_construction_context_fails_before_returning_partial_state(
+    overrides: dict[str, object], message: str
+) -> None:
+    with pytest.raises(ProviderConfigError, match=message):
+        ProviderConstructionContext.from_host_config(_host_config(**overrides))
 
 
 @pytest.mark.parametrize(

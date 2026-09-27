@@ -333,14 +333,23 @@ def analyze(
         "runtime_identity_from_host_config(config)",
         "self.validate_runtime(runtime)",
     )
+    construction_context = find_qualified_def(
+        plugin_config.text, "ProviderConstructionContext.from_host_config"
+    )
+    _require_text(
+        construction_context,
+        "_host_attribute(config, 'provider_config_json')",
+        "ProviderActivationConfig.from_json(raw)",
+        "activation.validate_host_config(config)",
+    )
     findings.append(
         {
             "id": "plugin-provider-schema-fails-closed-before-runtime",
             "status": "confirmed-in-worktree-source",
             "summary": (
                 "The plugin now owns a strict construction-time provider JSON "
-                "schema, derives an unambiguous identity from Host's construction "
-                "carrier, and compares that identity with the activation contract. It "
+                "schema and atomically binds Host's canonical provider JSON to an "
+                "unambiguous construction identity. It "
                 "rejects malformed or non-finite JSON, contract-key drift, bad "
                 "digests, nonzero-offset policy, TP/layer/channel mismatch and "
                 "non-INT8 cache identity. Profile loading and provider execution "
@@ -368,6 +377,11 @@ def analyze(
                     plugin_config,
                     "ProviderActivationConfig.validate_host_config",
                     validate_host_config,
+                ),
+                source_ref(
+                    plugin_config,
+                    "ProviderConstructionContext.from_host_config",
+                    construction_context,
                 ),
             ],
         }

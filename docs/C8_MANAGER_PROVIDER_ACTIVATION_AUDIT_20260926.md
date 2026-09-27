@@ -81,8 +81,11 @@ runtime checks for model/revision, TP rank/size, admitted layer, channel count
 and INT8 cache dtype. It also verifies the dependency-free Host adapter: only
 canonical `model.layers.N.self_attn.attn` names are admitted, all required Host
 identity fields are extracted, and the resulting identity is passed through
-the existing runtime checks. The published manifest remains inert, so this
-schema and adapter are not yet an active provider.
+the existing runtime checks. `ProviderConstructionContext` makes provider-JSON
+parsing and Host-identity validation one fail-closed operation, so a future
+factory cannot accidentally perform only half of the construction contract.
+The published manifest remains inert, so this schema and adapter are not yet
+an active provider.
 
 ## What is still blocked
 

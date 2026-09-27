@@ -57,10 +57,10 @@ lengths, block size, sparse mode, and capture state. CPU tests establish the
 carrier and fail-closed provider protocol; they do not establish that a usable
 provider exists.
 
-The current plugin has no provider factory. `ProviderActivationConfig` can
-compare a `ProviderRuntimeIdentity`, and `runtime_identity_from_host_config`
-can now derive that identity from Host's construction carrier without a
-Host/Torch import. The adapter is not yet called by an actual provider factory.
+The current plugin has no provider factory. `ProviderConstructionContext` now
+atomically parses Host's canonical provider JSON, derives the runtime identity
+without a Host/Torch import, and validates the two together. That context is
+not yet called by an actual provider factory and does not load a profile.
 Therefore the current honest status remains `import_only` and
 `HOST_CONFIG_AND_PLUGIN_SCHEMA_READY_PROFILE_AND_PROVIDER_STILL_MISSING`.
 
@@ -68,8 +68,8 @@ Therefore the current honest status remains `import_only` and
 
 1. Select the BF16-to-C8 delivery route: ModelSlim-compatible sidecar first, or
    a new Host-owned external profile source.
-2. Implement provider construction that converts Host facts into
-   `ProviderRuntimeIdentity`, derives the admitted layer ID, and validates it.
+2. Make the real provider factory call `ProviderConstructionContext`; do not
+   duplicate or bypass its JSON, layer-ID, identity, and runtime validation.
 3. Load the exact profile before graph capture; compare the versioned logical
    digest, exact tensor names/shapes, zero offsets, model config digest, and
    provenance.
