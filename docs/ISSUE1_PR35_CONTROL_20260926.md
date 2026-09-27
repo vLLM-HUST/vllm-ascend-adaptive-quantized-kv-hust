@@ -129,10 +129,13 @@ Before plugin integration or NPU work, the host owner must confirm:
 7. How to resolve the current CPU-UT CI gate before treating the PR as
    validated. Test-only PR #37 declares the unchanged `V41CacheLayer` test
    double and preserves the real Triton runtime package while mocking only its
-   hardware-facing driver. Pre-commit and mypy passed on the first patch; the
-   branch was then replayed onto current Host `main@5422a07c4` because CI
-   requires exact base ancestry. CPU collection on the replayed head remains
-   pending and must not be reported as passed until CI completes.
+   hardware-facing driver. On replayed Host `main@5422a07c4`, pre-commit and
+   mypy passed and the complete CPU suite collected and ran: 6,768 tests passed,
+   49 skipped and 12 failed. The collection defect is therefore closed. Every
+   remaining failure was traced to a stale test fixture or expectation after a
+   current API change; PR #37 head `a04fa2b50` contains test-only repairs and is
+   rerunning the complete gate. The Host CPU baseline must not be reported as
+   green until that rerun passes.
 8. How the standard BF16 target reaches C8 storage and the provider. Current
    source configures PR #35 only through checkpoint metadata declaring
    `kv_cache_type=C8`; plugin enablement alone cannot make the BF16 path C8.

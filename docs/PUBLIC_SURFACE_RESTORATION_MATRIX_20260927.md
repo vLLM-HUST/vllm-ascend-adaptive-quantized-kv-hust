@@ -4,9 +4,11 @@
 
 Plugin Issue #1 records that website PR
 [`vLLM-HUST/vllm-hust-website#303`](https://github.com/vLLM-HUST/vllm-hust-website/pull/303)
-removed `Adaptive Quantized KV` from the public MOD Workshop. This matrix maps
-each owner requirement to evidence, remaining work and the responsible owner.
-It is an execution checklist, not evidence that any incomplete gate passed.
+merged as `67555a509024564ddc23ad05fab31e825f3d5154` and removed
+`Adaptive Quantized KV` from the public MOD Workshop while retaining historical
+registry and evidence records. This matrix maps each owner requirement to
+evidence, remaining work and the responsible owner. It is an execution
+checklist, not evidence that any incomplete gate passed.
 
 Current public state: **delisted**. Current manifest state: **`import_only`**.
 
@@ -15,7 +17,7 @@ Current public state: **delisted**. Current manifest state: **`import_only`**.
 | Gate | Required evidence | Current evidence | Status | Next action and owner |
 | --- | --- | --- | --- | --- |
 | R1 profile delivery | Revision-bound calibrated Qwen3.5-35B-A3B KV profile; auditable method, dataset, model/config/profile digests and explicit zero-offset policy | Strict profile schema, logical tensor digest and artifact auditor exist; no calibrated target values exist | Blocked | Host owner selects ModelSlim-compatible sidecar or Host-owned external profile source; assigned calibration owner produces the profile and provenance |
-| R2 Host reachability | Accepted C8 selection/loading and provider carrier on an exact Host revision; only ten full-attention layers enter C8; unsupported inputs fail closed | Host Draft PR #35 carries the provider contract/config; source audit proves the public BF16 target does not reach C8 from plugin activation alone | Blocked | Merge or revise test-only PR #37, validate PR #35 CPU tests, then obtain Host-owner architecture acceptance and exact delivery revision |
+| R2 Host reachability | Accepted C8 selection/loading and provider carrier on an exact Host revision; only ten full-attention layers enter C8; unsupported inputs fail closed | Host Draft PR #35 carries the provider contract/config; source audit proves the public BF16 target does not reach C8 from plugin activation alone. PR #37 now reaches full CPU execution, with its remaining stale-fixture repairs rerunning at `a04fa2b50` | Blocked | Land PR #37 only after its complete CPU gate passes, validate PR #35 CPU tests, then obtain Host-owner architecture acceptance and exact delivery revision |
 | R3 provider construction | Provider loads and revalidates the exact profile before graph capture; model, revision, config, profile, TP, layer, layout, SoC and cache-write ownership match | Atomic off-device `ProviderConstructionContext` validates canonical config plus Host identity; profile loading and execution are absent | In progress | Implement only after R1/R2 choose the actual data source and accepted Host interface |
 | R4 Manager lifecycle | On exact Host/plugin heads, real `discover`, `check`, `plan` and `run` reach the intended provider; conflicts and unsupported states fail closed | Static Manager source audit and inert distribution checks pass; no real activation run exists | Blocked | Pin accepted R1-R3 heads, build an internal correctness candidate, then retain Manager command/output receipts |
 | R5 NPU serving correctness | Worker coverage, TP2, APC, MTP2, async, hybrid attention/Mamba cache, `FULL_AND_PIECEWISE`, numerical oracle, graph capture/replay and fallback all pass | CPU reference and contract tests only | Blocked | Execute the preregistered correctness matrix after R4; stop on any provenance, correctness, graph or fallback failure |
