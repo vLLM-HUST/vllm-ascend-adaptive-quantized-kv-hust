@@ -52,5 +52,7 @@ safe to execute.
 This commit provides schema parsing and runtime-identity validation only. It
 does not provide calibrated scale values, load a profile, construct a Host
 provider, activate the extension, start an NPU service or establish runtime
-correctness/performance. The manifest remains `import_only` until those gates
-close.
+correctness/performance. The per-field evidence and missing closure are
+enumerated in
+[`C8_PROVIDER_FIELD_VERIFICATION_MATRIX_20260927.md`](C8_PROVIDER_FIELD_VERIFICATION_MATRIX_20260927.md).
+The manifest remains `import_only` until those gates close.

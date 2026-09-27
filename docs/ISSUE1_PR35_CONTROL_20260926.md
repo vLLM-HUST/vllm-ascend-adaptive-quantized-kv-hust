@@ -149,6 +149,12 @@ Before plugin integration or NPU work, the host owner must confirm:
   [`C8_PROVIDER_CONFIG_CONTRACT_20260926.md`](C8_PROVIDER_CONFIG_CONTRACT_20260926.md)
   independent of Host/Torch imports until profile loading and the actual
   provider factory are available.
+- Use
+  [`C8_PROVIDER_FIELD_VERIFICATION_MATRIX_20260927.md`](C8_PROVIDER_FIELD_VERIFICATION_MATRIX_20260927.md)
+  as the claim boundary: schema validation, Host-bound CPU checks, standalone
+  artifact receipts and real-device correctness are distinct evidence levels.
+  Do not describe a field as verified when only its syntax or configured label
+  has been checked.
 - Preserve the delivered CPU reference and historical evidence.
 - Prepare a bounded real-device correctness matrix without executing it.
 
