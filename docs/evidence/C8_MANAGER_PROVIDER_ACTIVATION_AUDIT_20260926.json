@@ -21,10 +21,28 @@
           "revision": "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b",
           "start_line": 84,
           "symbol": "_merge_command_config"
+        },
+        {
+          "blob_sha256": "3fd4d76837639068dbcbf6015aa970145fe14681d9952d1a381aa31204d53346",
+          "end_line": 86,
+          "path": "tests/test_cli.py",
+          "repository": "vLLM-HUST/extension-manager",
+          "revision": "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b",
+          "start_line": 81,
+          "symbol": "test_run_merges_existing_additional_config"
+        },
+        {
+          "blob_sha256": "3fd4d76837639068dbcbf6015aa970145fe14681d9952d1a381aa31204d53346",
+          "end_line": 99,
+          "path": "tests/test_cli.py",
+          "repository": "vLLM-HUST/extension-manager",
+          "revision": "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b",
+          "start_line": 89,
+          "symbol": "test_run_rejects_activation_conflict"
         }
       ],
       "id": "manager-merges-static-activation-with-operator-config",
-      "status": "confirmed-in-pinned-source",
+      "status": "confirmed-in-pinned-source-and-tests",
       "summary": "The Manager merges static manifest activation into an existing operator-supplied --additional-config object and rejects conflicting keys. This can carry a fixed provider factory plus user-owned profile settings without inventing a custom Host Provider."
     },
     {
@@ -258,6 +276,12 @@
     {
       "blob_sha256": "406747c25580983c41bf2cb479e09ba3be76cfb8fe259f59947ef675bb4a120d",
       "path": "src/vllm_hust_ext/providers/vllm.py",
+      "repository": "vLLM-HUST/extension-manager",
+      "revision": "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b"
+    },
+    {
+      "blob_sha256": "3fd4d76837639068dbcbf6015aa970145fe14681d9952d1a381aa31204d53346",
+      "path": "tests/test_cli.py",
       "repository": "vLLM-HUST/extension-manager",
       "revision": "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b"
     },

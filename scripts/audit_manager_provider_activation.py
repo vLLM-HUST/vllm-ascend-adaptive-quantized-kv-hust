@@ -22,6 +22,7 @@ SCHEMA_VERSION = "vllm-ascend-c8-manager-provider-activation-audit/v1"
 
 MANAGER_CLI = "src/vllm_hust_ext/cli.py"
 MANAGER_PROVIDER = "src/vllm_hust_ext/providers/vllm.py"
+MANAGER_TEST_CLI = "tests/test_cli.py"
 HOST_CONFIG = "vllm_ascend/ascend_config.py"
 HOST_PROVIDER = "vllm_ascend/attention/continuing_prefill.py"
 HOST_ATTENTION = "vllm_ascend/attention/attention_v1.py"
@@ -220,8 +221,15 @@ def analyze(
     findings: list[dict[str, Any]] = []
 
     manager_cli = units[f"manager:{MANAGER_CLI}"]
+    manager_test_cli = units[f"manager:{MANAGER_TEST_CLI}"]
     activation_config = find_qualified_def(manager_cli.text, "_activation_config")
     merge_command_config = find_qualified_def(manager_cli.text, "_merge_command_config")
+    merge_test = find_qualified_def(
+        manager_test_cli.text, "test_run_merges_existing_additional_config"
+    )
+    conflict_test = find_qualified_def(
+        manager_test_cli.text, "test_run_rejects_activation_conflict"
+    )
     _require_text(
         activation_config,
         "bundle.manifest.activation.additional_config",
@@ -233,10 +241,21 @@ def analyze(
         "plugin activation conflicts with additional_config keys",
         "existing.update(activation)",
     )
+    _require_text(
+        merge_test,
+        "_merge_command_config",
+        "victim_selector_plugin",
+        "bidkv",
+    )
+    _require_text(
+        conflict_test,
+        "pytest.raises(ValueError, match='conflicts')",
+        "_merge_command_config",
+    )
     findings.append(
         {
             "id": "manager-merges-static-activation-with-operator-config",
-            "status": "confirmed-in-pinned-source",
+            "status": "confirmed-in-pinned-source-and-tests",
             "summary": (
                 "The Manager merges static manifest activation into an existing "
                 "operator-supplied --additional-config object and rejects conflicting "
@@ -246,6 +265,16 @@ def analyze(
             "evidence": [
                 source_ref(manager_cli, "_activation_config", activation_config),
                 source_ref(manager_cli, "_merge_command_config", merge_command_config),
+                source_ref(
+                    manager_test_cli,
+                    "test_run_merges_existing_additional_config",
+                    merge_test,
+                ),
+                source_ref(
+                    manager_test_cli,
+                    "test_run_rejects_activation_conflict",
+                    conflict_test,
+                ),
             ],
         }
     )
@@ -517,7 +546,7 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
         units[f"host:{path}"] = load_source(
             host_repo, HOST_REPOSITORY, HOST_REVISION, path
         )
-    for path in (MANAGER_CLI, MANAGER_PROVIDER):
+    for path in (MANAGER_CLI, MANAGER_PROVIDER, MANAGER_TEST_CLI):
         units[f"manager:{path}"] = load_source(
             manager_repo, MANAGER_REPOSITORY, MANAGER_REVISION, path
         )

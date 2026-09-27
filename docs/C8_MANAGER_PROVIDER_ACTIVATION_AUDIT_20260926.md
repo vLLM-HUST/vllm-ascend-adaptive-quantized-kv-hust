@@ -38,6 +38,12 @@ The Extension Manager can reuse its built-in vLLM Provider:
 3. The Manager rejects a launch when static activation and operator values
    disagree on the same key.
 
+The pinned Manager tests for existing-config merge and conflict rejection were
+also run directly at
+`cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b`: both focused tests passed. This
+closes the generic merge behavior, but not the final plugin dry-run because the
+project manifest intentionally remains `import_only`.
+
 The eventual active manifest can therefore fix the provider factory while the
 operator supplies deployment-specific profile settings. No project-specific
 Manager Host Provider or unofficial `vllm.*` entry point is needed.
