@@ -576,10 +576,16 @@ def analyze(
     return findings
 
 
-def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, Any]:
+def audit(
+    host_repo: Path,
+    manager_repo: Path,
+    plugin_repo: Path,
+    plugin_revision: str,
+) -> dict[str, Any]:
     repositories = (
         (host_repo, HOST_REPOSITORY, HOST_REVISION),
         (manager_repo, MANAGER_REPOSITORY, MANAGER_REVISION),
+        (plugin_repo, PLUGIN_REPOSITORY, plugin_revision),
     )
     for repo, repository, revision in repositories:
         origin = _git(repo, "remote", "get-url", "origin").decode()
@@ -596,23 +602,26 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
             manager_repo, MANAGER_REPOSITORY, MANAGER_REVISION, path
         )
 
-    plugin_config_path = plugin_repo / PLUGIN_PROVIDER_CONFIG
-    plugin_config_raw = plugin_config_path.read_bytes()
-    units[f"plugin:{PLUGIN_PROVIDER_CONFIG}"] = SourceUnit(
-        repository=PLUGIN_REPOSITORY,
-        revision="worktree",
-        path=PLUGIN_PROVIDER_CONFIG,
-        text=plugin_config_raw.decode(),
-        sha256=hashlib.sha256(plugin_config_raw).hexdigest(),
+    plugin_config = load_source(
+        plugin_repo,
+        PLUGIN_REPOSITORY,
+        plugin_revision,
+        PLUGIN_PROVIDER_CONFIG,
     )
+    units[f"plugin:{PLUGIN_PROVIDER_CONFIG}"] = plugin_config
 
-    manifest_path = plugin_repo / PLUGIN_MANIFEST
-    manifest_raw = manifest_path.read_bytes()
-    manifest = json.loads(manifest_raw)
+    plugin_manifest = load_source(
+        plugin_repo,
+        PLUGIN_REPOSITORY,
+        plugin_revision,
+        PLUGIN_MANIFEST,
+    )
+    units[f"plugin:{PLUGIN_MANIFEST}"] = plugin_manifest
+    manifest = json.loads(plugin_manifest.text)
     findings = analyze(units, manifest)
     return {
         "schema_version": SCHEMA_VERSION,
-        "classification": "read-only-pinned-source-and-worktree-plugin-audit",
+        "classification": "read-only-pinned-source-audit",
         "activation_status": (
             "HOST_CONFIG_AND_PLUGIN_SCHEMA_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
         ),
@@ -624,14 +633,18 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
             "repository": MANAGER_REPOSITORY,
             "revision": MANAGER_REVISION,
         },
+        "plugin": {
+            "repository": PLUGIN_REPOSITORY,
+            "revision": plugin_revision,
+        },
         "plugin_manifest": {
             "path": PLUGIN_MANIFEST,
-            "sha256": hashlib.sha256(manifest_raw).hexdigest(),
+            "sha256": plugin_manifest.sha256,
             "implementation_status": manifest["implementation"][0]["status"],
         },
         "plugin_provider_config": {
             "path": PLUGIN_PROVIDER_CONFIG,
-            "sha256": hashlib.sha256(plugin_config_raw).hexdigest(),
+            "sha256": plugin_config.sha256,
         },
         "sources": [
             {
@@ -670,10 +683,16 @@ def main() -> int:
     parser.add_argument("--host-repo", type=Path, required=True)
     parser.add_argument("--manager-repo", type=Path, required=True)
     parser.add_argument("--plugin-repo", type=Path, default=Path.cwd())
+    parser.add_argument("--plugin-revision", required=True)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        result = audit(args.host_repo, args.manager_repo, args.plugin_repo)
+        result = audit(
+            args.host_repo,
+            args.manager_repo,
+            args.plugin_repo,
+            args.plugin_revision,
+        )
     except (
         AuditInconclusive,
         OSError,

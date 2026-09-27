@@ -1,6 +1,6 @@
 {
   "activation_status": "HOST_CONFIG_AND_PLUGIN_SCHEMA_READY_PROFILE_AND_PROVIDER_STILL_MISSING",
-  "classification": "read-only-pinned-source-and-worktree-plugin-audit",
+  "classification": "read-only-pinned-source-audit",
   "findings": [
     {
       "evidence": [
@@ -52,7 +52,7 @@
           "end_line": 32,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
-          "revision": "worktree",
+          "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd",
           "start_line": 16,
           "symbol": "_REQUIRED_KEYS"
         },
@@ -61,7 +61,7 @@
           "end_line": 248,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
-          "revision": "worktree",
+          "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd",
           "start_line": 195,
           "symbol": "ProviderActivationConfig.from_json"
         },
@@ -70,7 +70,7 @@
           "end_line": 286,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
-          "revision": "worktree",
+          "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd",
           "start_line": 250,
           "symbol": "ProviderActivationConfig.validate_runtime"
         },
@@ -79,7 +79,7 @@
           "end_line": 172,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
-          "revision": "worktree",
+          "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd",
           "start_line": 133,
           "symbol": "runtime_identity_from_host_config"
         },
@@ -88,7 +88,7 @@
           "end_line": 293,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
-          "revision": "worktree",
+          "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd",
           "start_line": 288,
           "symbol": "ProviderActivationConfig.validate_host_config"
         },
@@ -97,7 +97,7 @@
           "end_line": 308,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
-          "revision": "worktree",
+          "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd",
           "start_line": 304,
           "symbol": "ProviderConstructionContext.from_host_config"
         }
@@ -258,6 +258,10 @@
   },
   "npu_started": false,
   "performance_claim": false,
+  "plugin": {
+    "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
+    "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd"
+  },
   "plugin_manifest": {
     "implementation_status": "import_only",
     "path": "src/vllm_ascend_adaptive_quantized_kv/vllm-hust-extension-v0.2.json",
@@ -316,7 +320,13 @@
       "blob_sha256": "e0f58ae6f5b4060200dd02d1edcd20a376fb1056cd87714c073875bf65b22ddf",
       "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
       "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
-      "revision": "worktree"
+      "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd"
+    },
+    {
+      "blob_sha256": "c70dec2db8fc1bdf50582acc39c5b474c1edd8d3a4c9a16e5f4e09d932befd5f",
+      "path": "src/vllm_ascend_adaptive_quantized_kv/vllm-hust-extension-v0.2.json",
+      "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
+      "revision": "2105308b3e23a86d010a61c7420c79c2d07f78fd"
     }
   ]
 }

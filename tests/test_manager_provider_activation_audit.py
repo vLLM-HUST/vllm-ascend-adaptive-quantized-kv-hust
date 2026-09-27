@@ -77,31 +77,48 @@ def test_success_receipt_is_deterministic(monkeypatch, tmp_path) -> None:
     provider_config = plugin_repo / audit.PLUGIN_PROVIDER_CONFIG
     provider_config.write_text("", encoding="utf-8")
 
+    plugin_revision = "b" * 40
     monkeypatch.setattr(
         audit,
         "_git",
         lambda repo, *args: (
             b"https://github.com/vLLM-HUST/vllm-ascend-hust.git\n"
             if repo == host_repo
-            else b"https://github.com/vLLM-HUST/extension-manager.git\n"
+            else (
+                b"https://github.com/vLLM-HUST/extension-manager.git\n"
+                if repo == manager_repo
+                else b"https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust.git\n"
+            )
         ),
     )
     monkeypatch.setattr(
         audit,
         "load_source",
         lambda repo, repository, revision, path: audit.SourceUnit(
-            repository, revision, path, "", f"sha256:{path}"
+            repository,
+            revision,
+            path,
+            (
+                '{"implementation":[{"status":"import_only"}],'
+                '"activation":{"entry_points":[],"environment":{},'
+                '"additional_config":{}}}'
+                if path == audit.PLUGIN_MANIFEST
+                else ""
+            ),
+            f"sha256:{path}",
         ),
     )
     monkeypatch.setattr(audit, "analyze", lambda units, payload: [])
 
-    first = audit.audit(host_repo, manager_repo, plugin_repo)
-    second = audit.audit(host_repo, manager_repo, plugin_repo)
+    first = audit.audit(host_repo, manager_repo, plugin_repo, plugin_revision)
+    second = audit.audit(host_repo, manager_repo, plugin_repo, plugin_revision)
 
     assert first == second
     assert first["activation_status"] == (
         "HOST_CONFIG_AND_PLUGIN_SCHEMA_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
     )
     assert first["runtime_compatible"] is False
+    assert first["classification"] == "read-only-pinned-source-audit"
+    assert first["plugin"]["revision"] == plugin_revision
     assert first["plugin_provider_config"]["path"] == audit.PLUGIN_PROVIDER_CONFIG
     assert "generated_at" not in first

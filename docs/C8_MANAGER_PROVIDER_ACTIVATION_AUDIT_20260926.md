@@ -19,7 +19,9 @@ The read-only audit pins:
   `vLLM-HUST/extension-manager@cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b`;
 - Host candidate
   `vLLM-HUST/vllm-ascend-hust@084f70f50dfcdf2daf66b3a31813bc982c2d1d09`;
-- the plugin's current inert manifest by SHA256.
+- plugin construction contract
+  `vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust@2105308b3e23a86d010a61c7420c79c2d07f78fd`,
+  including its inert manifest and provider-config source by SHA256.
 
 Its machine-readable receipt is
 [`docs/evidence/C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.json`](evidence/C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.json),
