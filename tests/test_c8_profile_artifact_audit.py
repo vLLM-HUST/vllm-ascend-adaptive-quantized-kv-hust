@@ -271,3 +271,23 @@ def test_weight_map_cannot_escape_model_directory(tmp_path: Path) -> None:
 
     with pytest.raises(AuditError, match="unsafe shard path"):
         audit_profile(tmp_path, label="fixture")
+
+
+def test_duplicate_safetensors_header_key_fails_closed(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    shard = tmp_path / "model-00001-of-00001.safetensors"
+    raw = shard.read_bytes()
+    header_length = struct.unpack("<Q", raw[:8])[0]
+    header_raw = raw[8 : 8 + header_length]
+    header = json.loads(header_raw)
+    tensor_name = next(name for name in header if name != "__metadata__")
+    duplicate = json.dumps(header[tensor_name], separators=(",", ":"))
+    text = header_raw.decode().rstrip()
+    rewritten = f'{text[:-1]},"{tensor_name}":{duplicate}}}'.encode()
+    padding = (-len(rewritten)) % 8
+    rewritten += b" " * padding
+    data = raw[8 + header_length :]
+    shard.write_bytes(struct.pack("<Q", len(rewritten)) + rewritten + data)
+
+    with pytest.raises(AuditError, match=f"duplicate key {tensor_name!r}"):
+        audit_profile(tmp_path, label="fixture")

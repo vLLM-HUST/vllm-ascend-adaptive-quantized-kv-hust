@@ -135,7 +135,11 @@ def _load_header(path: Path) -> tuple[int, dict[str, Any]]:
             raise AuditError(f"unreasonable safetensors header in {path.name}")
         raw_header = stream.read(length)
     try:
-        header = json.loads(raw_header)
+        header = json.loads(
+            raw_header,
+            object_pairs_hook=_unique_object,
+            parse_constant=_reject_constant,
+        )
     except json.JSONDecodeError as error:
         raise AuditError(f"invalid safetensors header in {path.name}") from error
     if not isinstance(header, dict):
