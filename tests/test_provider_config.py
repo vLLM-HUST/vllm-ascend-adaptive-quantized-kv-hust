@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 
 import pytest
 
@@ -7,6 +8,7 @@ from vllm_ascend_adaptive_quantized_kv.provider_config import (
     ProviderActivationConfig,
     ProviderConfigError,
     ProviderRuntimeIdentity,
+    runtime_identity_from_host_config,
 )
 
 
@@ -47,6 +49,21 @@ def _runtime(**overrides: object) -> ProviderRuntimeIdentity:
     return ProviderRuntimeIdentity(**values)  # type: ignore[arg-type]
 
 
+def _host_config(**overrides: object) -> SimpleNamespace:
+    values: dict[str, object] = {
+        "layer_name": "model.layers.3.self_attn.attn",
+        "model": "Qwen/Qwen3.5-35B-A3B",
+        "model_revision": "59d61f3ce65a6d9863b86d2e96597125219dc754",
+        "tensor_parallel_rank": 0,
+        "tensor_parallel_size": 2,
+        "num_kv_heads": 1,
+        "head_size": 256,
+        "kv_cache_dtype": "torch.int8",
+    }
+    values.update(overrides)
+    return SimpleNamespace(**values)
+
+
 def test_parse_and_validate_pinned_runtime_contract() -> None:
     config = ProviderActivationConfig.from_json(json.dumps(_payload()))
     config.validate_runtime(_runtime())
@@ -54,6 +71,58 @@ def test_parse_and_validate_pinned_runtime_contract() -> None:
     assert config.full_attention_layer_ids == (3, 7, 11, 15, 19, 23, 27, 31, 35, 39)
     assert config.global_channels_per_tensor == 512
     assert config.tp_local_channels_per_tensor == 256
+
+
+def test_host_config_adapter_derives_and_validates_runtime_identity() -> None:
+    config = ProviderActivationConfig.from_json(json.dumps(_payload()))
+    host_config = _host_config(kv_cache_dtype="torch.int8")
+
+    runtime = config.validate_host_config(host_config)
+
+    assert runtime == _runtime()
+
+
+@pytest.mark.parametrize(
+    ("layer_name", "message"),
+    [
+        ("layers.3.self_attn.attn", "must match"),
+        ("model.layers.3.self_attn", "must match"),
+        ("prefix.model.layers.3.self_attn.attn", "must match"),
+        ("model.layers.3.self_attn.attn.suffix", "must match"),
+        ("model.layers.-1.self_attn.attn", "must match"),
+    ],
+)
+def test_host_config_adapter_rejects_ambiguous_layer_name(
+    layer_name: str, message: str
+) -> None:
+    with pytest.raises(ProviderConfigError, match=message):
+        runtime_identity_from_host_config(_host_config(layer_name=layer_name))
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"model": ""}, "model must be non-empty"),
+        ({"model_revision": ""}, "model_revision"),
+        ({"tensor_parallel_rank": True}, "must be an integer"),
+        ({"tensor_parallel_size": "2"}, "must be an integer"),
+        ({"num_kv_heads": 1.0}, "must be an integer"),
+        ({"head_size": None}, "must be an integer"),
+    ],
+)
+def test_host_config_adapter_rejects_invalid_identity_fields(
+    overrides: dict[str, object], message: str
+) -> None:
+    with pytest.raises(ProviderConfigError, match=message):
+        runtime_identity_from_host_config(_host_config(**overrides))
+
+
+def test_host_config_adapter_rejects_missing_attribute() -> None:
+    host_config = _host_config()
+    del host_config.num_kv_heads
+
+    with pytest.raises(ProviderConfigError, match="missing required attribute"):
+        runtime_identity_from_host_config(host_config)
 
 
 @pytest.mark.parametrize(

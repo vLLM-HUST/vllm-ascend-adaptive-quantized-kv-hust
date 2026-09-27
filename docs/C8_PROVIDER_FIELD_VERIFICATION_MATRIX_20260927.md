@@ -39,7 +39,7 @@ them together. A standalone `A` receipt does not raise an activation field to
 | `profile_sha256` | S; standalone A available | Digest syntax is checked; `audit_c8_profile_artifact.py` can independently emit the logical profile digest | Provider must recompute/consume the versioned logical digest and compare it before activation |
 | `calibration_provenance` | S | Non-empty string only | Define a machine-checkable provenance receipt and bind it to the exact profile and model revision |
 | `supported_soc` | S | Non-empty, unique strings only | Obtain the runtime SoC identity from an authoritative Host/runtime source and reject non-members |
-| `full_attention_layer_ids` | H (CPU) | Sorted unique IDs are required and a supplied layer ID must be admitted | Provider factory must derive the layer ID unambiguously from Host `layer_name`; real target must prove only the ten full-attention layers activate |
+| `full_attention_layer_ids` | H (CPU) | Sorted unique IDs are required; the Host adapter accepts only canonical `model.layers.N.self_attn.attn` names and the derived ID must be admitted | Provider factory must call the adapter; the real target must prove only the ten full-attention layers activate |
 | `global_channels_per_tensor` | S | Positive value and `global = tp_size * local` | Bind global shape to the loaded profile and pinned model config |
 | `tp_size` | H (CPU) | Host TP world size and rank bounds are compared | Exercise both ranks on the fixed TP2 target |
 | `tp_local_channels_per_tensor` | H (CPU) | `num_kv_heads * head_size` is compared with the configured local count | Bind each loaded scale/offset tensor to this local shape on both ranks |
@@ -58,9 +58,10 @@ carrier and fail-closed provider protocol; they do not establish that a usable
 provider exists.
 
 The current plugin has no provider factory. `ProviderActivationConfig` can
-compare a manually constructed `ProviderRuntimeIdentity`, but it is not yet
-wired to Host's `C8ContinuingPrefillProviderConfig`. Therefore the current
-honest status remains `import_only` and
+compare a `ProviderRuntimeIdentity`, and `runtime_identity_from_host_config`
+can now derive that identity from Host's construction carrier without a
+Host/Torch import. The adapter is not yet called by an actual provider factory.
+Therefore the current honest status remains `import_only` and
 `HOST_CONFIG_AND_PLUGIN_SCHEMA_READY_PROFILE_AND_PROVIDER_STILL_MISSING`.
 
 ## Ordered closure
@@ -77,4 +78,3 @@ honest status remains `import_only` and
 5. Run Manager disabled/conflict/enabled tests. Only then leave `import_only`.
 6. Run the preregistered real-device correctness matrix. Performance remains
    blocked until correctness, graph replay, cleanup, and resource gates pass.
-

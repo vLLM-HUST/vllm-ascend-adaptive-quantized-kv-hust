@@ -9,6 +9,9 @@ from typing import Any
 
 SCHEMA_VERSION = "vllm-ascend-adaptive-quantized-kv-provider/v1"
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
+HOST_LAYER_NAME_PATTERN = re.compile(
+    r"model\.layers\.(?P<layer_id>[0-9]+)\.self_attn\.attn"
+)
 
 _REQUIRED_KEYS = {
     "schema_version",
@@ -109,6 +112,64 @@ class ProviderRuntimeIdentity:
     num_kv_heads: int
     head_size: int
     kv_cache_dtype: str
+
+
+def _host_attribute(config: object, name: str) -> Any:
+    try:
+        return getattr(config, name)
+    except AttributeError as error:
+        raise ProviderConfigError(
+            f"Host provider config is missing required attribute {name!r}"
+        ) from error
+
+
+def _host_int(config: object, name: str) -> int:
+    value = _host_attribute(config, name)
+    if type(value) is not int:
+        raise ProviderConfigError(f"Host provider config {name} must be an integer")
+    return value
+
+
+def runtime_identity_from_host_config(config: object) -> ProviderRuntimeIdentity:
+    """Extract the fail-closed runtime identity carried by Host PR #35.
+
+    The adapter deliberately uses structural attribute access instead of
+    importing vLLM Ascend or Torch. The fixed target admits only canonical
+    ``model.layers.N.self_attn.attn`` names; accepting suffix or substring
+    matches would make layer admission ambiguous.
+    """
+
+    layer_name = _host_attribute(config, "layer_name")
+    if not isinstance(layer_name, str):
+        raise ProviderConfigError("Host provider config layer_name must be a string")
+    match = HOST_LAYER_NAME_PATTERN.fullmatch(layer_name)
+    if match is None:
+        raise ProviderConfigError(
+            "Host provider config layer_name must match "
+            "'model.layers.N.self_attn.attn' exactly"
+        )
+
+    model = _host_attribute(config, "model")
+    if not isinstance(model, str) or not model:
+        raise ProviderConfigError("Host provider config model must be non-empty")
+    model_revision = _host_attribute(config, "model_revision")
+    if model_revision is not None and (
+        not isinstance(model_revision, str) or not model_revision
+    ):
+        raise ProviderConfigError(
+            "Host provider config model_revision must be non-empty or None"
+        )
+
+    return ProviderRuntimeIdentity(
+        model=model,
+        model_revision=model_revision,
+        tensor_parallel_rank=_host_int(config, "tensor_parallel_rank"),
+        tensor_parallel_size=_host_int(config, "tensor_parallel_size"),
+        layer_id=int(match.group("layer_id")),
+        num_kv_heads=_host_int(config, "num_kv_heads"),
+        head_size=_host_int(config, "head_size"),
+        kv_cache_dtype=str(_host_attribute(config, "kv_cache_dtype")),
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -223,3 +284,10 @@ class ProviderActivationConfig:
                 "runtime KV cache dtype must be torch.int8, "
                 f"got {runtime.kv_cache_dtype!r}"
             )
+
+    def validate_host_config(self, config: object) -> ProviderRuntimeIdentity:
+        """Validate Host PR #35 construction facts and return their identity."""
+
+        runtime = runtime_identity_from_host_config(config)
+        self.validate_runtime(runtime)
+        return runtime

@@ -12,6 +12,13 @@ than explicit zero-only. Runtime validation then compares actual Host facts
 with the configured model, revision, TP group, full-attention layer set,
 TP-local channel count and INT8 cache dtype.
 
+`runtime_identity_from_host_config` is the dependency-free adapter for Host PR
+#35's construction carrier. It accepts only the fixed target's canonical
+`model.layers.N.self_attn.attn` layer name, requires all identity attributes,
+normalizes the Torch dtype through its stable string representation, and then
+feeds the existing fail-closed runtime comparison. It does not construct an
+attention provider or import Host/Torch.
+
 ## Required document
 
 The schema is
