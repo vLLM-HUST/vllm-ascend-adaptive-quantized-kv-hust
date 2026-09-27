@@ -34,11 +34,12 @@ channels are 256.
 model shard. It is the deterministic `profile_content_sha256` emitted by
 `scripts/audit_c8_profile_artifact.py`: each admitted logical tensor contributes
 its canonical name/dtype/shape descriptor, byte length and exact payload bytes
-in sorted layer/field order. The receipt also exposes each tensor digest. This
-binds activation to the reviewed calibration values while remaining stable if
-the same tensors are repacked into different safetensors shards. It does not
-establish calibration quality; provenance and correctness gates remain
-separate requirements.
+in sorted layer/field order under the explicit
+`sha256-framed-logical-tensors-v1` domain. The receipt also exposes the
+algorithm identifier and each tensor digest. This binds activation to the
+reviewed calibration values while remaining stable if the same tensors are
+repacked into different safetensors shards. It does not establish calibration
+quality; provenance and correctness gates remain separate requirements.
 
 The artifact audit also rejects duplicate/non-finite JSON, ambiguous
 safetensors headers, overlapping/out-of-bounds tensor ranges, and any absolute

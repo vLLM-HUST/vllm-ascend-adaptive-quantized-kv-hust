@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = "vllm-ascend-c8-profile-artifact-audit/v1"
+PROFILE_CONTENT_DIGEST_ALGORITHM = "sha256-framed-logical-tensors-v1"
 KV_NAME = re.compile(
     r"^model\.layers\.(?P<layer>\d+)\.self_attn\."
     r"(?P<kind>[kv])_proj\.kv_cache_(?P<field>scale|offset)$"
@@ -333,6 +334,7 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
     headers: dict[str, tuple[int, dict[str, Any]]] = {}
     summaries: list[dict[str, Any]] = []
     profile_digest = hashlib.sha256()
+    profile_digest.update(PROFILE_CONTENT_DIGEST_ALGORITHM.encode("ascii") + b"\0")
     for layer in sorted(profile_names):
         for field in sorted(REQUIRED_FIELDS):
             name = profile_names[layer][field]
@@ -424,6 +426,7 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
             "scale_tensor_count": len(scales),
             "scale_minimum": min(item["minimum"] for item in scales),
             "scale_maximum": max(item["maximum"] for item in scales),
+            "profile_content_digest_algorithm": PROFILE_CONTENT_DIGEST_ALGORITHM,
             "profile_content_sha256": profile_digest.hexdigest(),
             "tensor_digests": [
                 {

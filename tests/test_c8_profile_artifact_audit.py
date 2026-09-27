@@ -7,7 +7,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.audit_c8_profile_artifact import AuditError, audit_profile
+from scripts.audit_c8_profile_artifact import (
+    PROFILE_CONTENT_DIGEST_ALGORITHM,
+    AuditError,
+    audit_profile,
+)
 
 
 def _bf16(values: list[float]) -> bytes:
@@ -134,6 +138,10 @@ def test_valid_float_weight_c8_profile_passes(tmp_path: Path) -> None:
     assert result["profile"]["tp_local_channels_per_tensor"] == 4
     assert result["profile"]["offset_nonzero_elements"] == 0
     assert result["profile"]["scale_minimum"] == pytest.approx(0.25)
+    assert (
+        result["profile"]["profile_content_digest_algorithm"]
+        == PROFILE_CONTENT_DIGEST_ALGORITHM
+    )
     assert len(result["profile"]["profile_content_sha256"]) == 64
     assert len(result["profile"]["tensor_digests"]) == 8
 
