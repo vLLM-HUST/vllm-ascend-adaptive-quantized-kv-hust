@@ -48,31 +48,49 @@
     {
       "evidence": [
         {
-          "blob_sha256": "583fe5c29933ca98b7feacf8008863d2219b7a145e25556fccfe563ca311709c",
-          "end_line": 29,
+          "blob_sha256": "1a500cda5650c335096020dd8421c1499bf38f542c844e96901bbcc256b0cdef",
+          "end_line": 32,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
           "revision": "worktree",
-          "start_line": 13,
+          "start_line": 16,
           "symbol": "_REQUIRED_KEYS"
         },
         {
-          "blob_sha256": "583fe5c29933ca98b7feacf8008863d2219b7a145e25556fccfe563ca311709c",
-          "end_line": 187,
+          "blob_sha256": "1a500cda5650c335096020dd8421c1499bf38f542c844e96901bbcc256b0cdef",
+          "end_line": 248,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
           "revision": "worktree",
-          "start_line": 134,
+          "start_line": 195,
           "symbol": "ProviderActivationConfig.from_json"
         },
         {
-          "blob_sha256": "583fe5c29933ca98b7feacf8008863d2219b7a145e25556fccfe563ca311709c",
-          "end_line": 225,
+          "blob_sha256": "1a500cda5650c335096020dd8421c1499bf38f542c844e96901bbcc256b0cdef",
+          "end_line": 286,
           "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
           "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
           "revision": "worktree",
-          "start_line": 189,
+          "start_line": 250,
           "symbol": "ProviderActivationConfig.validate_runtime"
+        },
+        {
+          "blob_sha256": "1a500cda5650c335096020dd8421c1499bf38f542c844e96901bbcc256b0cdef",
+          "end_line": 172,
+          "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
+          "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
+          "revision": "worktree",
+          "start_line": 133,
+          "symbol": "runtime_identity_from_host_config"
+        },
+        {
+          "blob_sha256": "1a500cda5650c335096020dd8421c1499bf38f542c844e96901bbcc256b0cdef",
+          "end_line": 293,
+          "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
+          "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
+          "revision": "worktree",
+          "start_line": 288,
+          "symbol": "ProviderActivationConfig.validate_host_config"
         }
       ],
       "id": "plugin-provider-schema-fails-closed-before-runtime",
@@ -94,7 +112,7 @@
         "zero_offsets_attested"
       ],
       "status": "confirmed-in-worktree-source",
-      "summary": "The plugin now owns a strict construction-time provider JSON schema and compares it with actual Host runtime identity. It rejects malformed or non-finite JSON, contract-key drift, bad digests, nonzero-offset policy, TP/layer/channel mismatch and non-INT8 cache identity. Profile loading and provider execution remain unimplemented."
+      "summary": "The plugin now owns a strict construction-time provider JSON schema, derives an unambiguous identity from Host's construction carrier, and compares that identity with the activation contract. It rejects malformed or non-finite JSON, contract-key drift, bad digests, nonzero-offset policy, TP/layer/channel mismatch and non-INT8 cache identity. Profile loading and provider execution remain unimplemented."
     },
     {
       "evidence": [
@@ -238,7 +256,7 @@
   },
   "plugin_provider_config": {
     "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
-    "sha256": "583fe5c29933ca98b7feacf8008863d2219b7a145e25556fccfe563ca311709c"
+    "sha256": "1a500cda5650c335096020dd8421c1499bf38f542c844e96901bbcc256b0cdef"
   },
   "required_closure": [
     "Implement provider construction around the existing strict schema, load the attested profile before graph capture, and compare its logical tensor-content digest with profile_sha256.",
@@ -286,7 +304,7 @@
       "revision": "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b"
     },
     {
-      "blob_sha256": "583fe5c29933ca98b7feacf8008863d2219b7a145e25556fccfe563ca311709c",
+      "blob_sha256": "1a500cda5650c335096020dd8421c1499bf38f542c844e96901bbcc256b0cdef",
       "path": "src/vllm_ascend_adaptive_quantized_kv/provider_config.py",
       "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
       "revision": "worktree"

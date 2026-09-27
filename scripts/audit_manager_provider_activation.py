@@ -313,13 +313,34 @@ def analyze(
         "TP-local KV channels",
         "torch.int8",
     )
+    host_adapter = find_qualified_def(
+        plugin_config.text, "runtime_identity_from_host_config"
+    )
+    _require_text(
+        host_adapter,
+        "HOST_LAYER_NAME_PATTERN.fullmatch(layer_name)",
+        "_host_int(config, 'tensor_parallel_rank')",
+        "_host_int(config, 'tensor_parallel_size')",
+        "_host_int(config, 'num_kv_heads')",
+        "_host_int(config, 'head_size')",
+        "str(_host_attribute(config, 'kv_cache_dtype'))",
+    )
+    validate_host_config = find_qualified_def(
+        plugin_config.text, "ProviderActivationConfig.validate_host_config"
+    )
+    _require_text(
+        validate_host_config,
+        "runtime_identity_from_host_config(config)",
+        "self.validate_runtime(runtime)",
+    )
     findings.append(
         {
             "id": "plugin-provider-schema-fails-closed-before-runtime",
             "status": "confirmed-in-worktree-source",
             "summary": (
                 "The plugin now owns a strict construction-time provider JSON "
-                "schema and compares it with actual Host runtime identity. It "
+                "schema, derives an unambiguous identity from Host's construction "
+                "carrier, and compares that identity with the activation contract. It "
                 "rejects malformed or non-finite JSON, contract-key drift, bad "
                 "digests, nonzero-offset policy, TP/layer/channel mismatch and "
                 "non-INT8 cache identity. Profile loading and provider execution "
@@ -337,6 +358,16 @@ def analyze(
                     plugin_config,
                     "ProviderActivationConfig.validate_runtime",
                     validate_runtime,
+                ),
+                source_ref(
+                    plugin_config,
+                    "runtime_identity_from_host_config",
+                    host_adapter,
+                ),
+                source_ref(
+                    plugin_config,
+                    "ProviderActivationConfig.validate_host_config",
+                    validate_host_config,
                 ),
             ],
         }

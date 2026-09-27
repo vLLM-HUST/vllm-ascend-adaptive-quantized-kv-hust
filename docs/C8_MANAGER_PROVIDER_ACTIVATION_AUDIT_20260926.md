@@ -78,8 +78,11 @@ The current worktree now contains a pure-Python, fail-closed provider schema.
 The audit structurally verifies its exact key set, duplicate/non-finite JSON
 rejection, digest syntax, zero-offset policy, TP channel relationship and
 runtime checks for model/revision, TP rank/size, admitted layer, channel count
-and INT8 cache dtype. The published manifest remains inert, so this schema is
-not yet an active provider.
+and INT8 cache dtype. It also verifies the dependency-free Host adapter: only
+canonical `model.layers.N.self_attn.attn` names are admitted, all required Host
+identity fields are extracted, and the resulting identity is passed through
+the existing runtime checks. The published manifest remains inert, so this
+schema and adapter are not yet an active provider.
 
 ## What is still blocked
 
