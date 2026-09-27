@@ -47,6 +47,16 @@ class ProviderConfig:
     assert audit._annotated_fields(class_node) == {"layer_name", "head_size"}
 
 
+def test_module_string_set_is_structural() -> None:
+    node, values = audit._module_string_set(
+        '_REQUIRED_KEYS = {"schema_version", "profile_sha256"}',
+        "_REQUIRED_KEYS",
+    )
+
+    assert isinstance(node, ast.Assign)
+    assert values == {"schema_version", "profile_sha256"}
+
+
 def test_provider_owned_attestation_has_a_canonical_json_carrier() -> None:
     assert "provider_config_json" in audit.EXPECTED_PROVIDER_CONFIG_FIELDS
     assert "model" in audit.EXPECTED_PROVIDER_CONFIG_FIELDS
@@ -64,6 +74,8 @@ def test_success_receipt_is_deterministic(monkeypatch, tmp_path) -> None:
         '{"implementation":[{"status":"import_only"}],"activation":{}}',
         encoding="utf-8",
     )
+    provider_config = plugin_repo / audit.PLUGIN_PROVIDER_CONFIG
+    provider_config.write_text("", encoding="utf-8")
 
     monkeypatch.setattr(
         audit,
@@ -88,7 +100,8 @@ def test_success_receipt_is_deterministic(monkeypatch, tmp_path) -> None:
 
     assert first == second
     assert first["activation_status"] == (
-        "HOST_CONFIG_CHANNEL_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
+        "HOST_CONFIG_AND_PLUGIN_SCHEMA_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
     )
     assert first["runtime_compatible"] is False
+    assert first["plugin_provider_config"]["path"] == audit.PLUGIN_PROVIDER_CONFIG
     assert "generated_at" not in first

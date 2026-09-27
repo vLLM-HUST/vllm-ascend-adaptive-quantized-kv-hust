@@ -17,6 +17,7 @@ HOST_REPOSITORY = "vLLM-HUST/vllm-ascend-hust"
 HOST_REVISION = "084f70f50dfcdf2daf66b3a31813bc982c2d1d09"
 MANAGER_REPOSITORY = "vLLM-HUST/extension-manager"
 MANAGER_REVISION = "cf1ea71e3e2cb81ab06267ef05eddb3e580ea20b"
+PLUGIN_REPOSITORY = "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust"
 SCHEMA_VERSION = "vllm-ascend-c8-manager-provider-activation-audit/v1"
 
 MANAGER_CLI = "src/vllm_hust_ext/cli.py"
@@ -25,6 +26,7 @@ HOST_CONFIG = "vllm_ascend/ascend_config.py"
 HOST_PROVIDER = "vllm_ascend/attention/continuing_prefill.py"
 HOST_ATTENTION = "vllm_ascend/attention/attention_v1.py"
 PLUGIN_MANIFEST = "src/vllm_ascend_adaptive_quantized_kv/vllm-hust-extension-v0.2.json"
+PLUGIN_PROVIDER_CONFIG = "src/vllm_ascend_adaptive_quantized_kv/provider_config.py"
 
 EXPECTED_PROVIDER_CONFIG_FIELDS = {
     "layer_name",
@@ -45,6 +47,23 @@ REQUIRED_PROVIDER_CONFIG_KEYS = {
     "model_config_sha256",
     "profile_sha256",
     "zero_offsets_attested",
+}
+EXPECTED_PLUGIN_PROVIDER_CONFIG_KEYS = {
+    "schema_version",
+    "expected_model",
+    "expected_model_revision",
+    "model_config_sha256",
+    "profile_path",
+    "profile_sha256",
+    "calibration_provenance",
+    "supported_soc",
+    "full_attention_layer_ids",
+    "global_channels_per_tensor",
+    "tp_size",
+    "tp_local_channels_per_tensor",
+    "zero_offsets_attested",
+    "kv_layout",
+    "cache_write_owner",
 }
 
 
@@ -167,6 +186,34 @@ def _annotated_fields(class_node: ast.AST) -> set[str]:
     }
 
 
+def _module_string_set(source: str, name: str) -> tuple[ast.AST, set[str]]:
+    matches: list[ast.AST] = []
+    for node in ast.parse(source).body:
+        if (
+            isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == name
+                for target in node.targets
+            )
+        ) or (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and node.target.id == name
+        ):
+            matches.append(node)
+    if len(matches) != 1:
+        raise AuditInconclusive(f"expected exactly one assignment for {name!r}")
+    node = matches[0]
+    value_node = node.value if isinstance(node, (ast.Assign, ast.AnnAssign)) else None
+    try:
+        value = ast.literal_eval(value_node)
+    except (TypeError, ValueError) as error:
+        raise AuditInconclusive(f"{name} is not a literal value") from error
+    if not isinstance(value, set) or not all(isinstance(item, str) for item in value):
+        raise AuditInconclusive(f"{name} is not a literal string set")
+    return node, value
+
+
 def analyze(
     units: dict[str, SourceUnit], manifest: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -199,6 +246,69 @@ def analyze(
             "evidence": [
                 source_ref(manager_cli, "_activation_config", activation_config),
                 source_ref(manager_cli, "_merge_command_config", merge_command_config),
+            ],
+        }
+    )
+
+    plugin_config = units[f"plugin:{PLUGIN_PROVIDER_CONFIG}"]
+    required_keys_node, plugin_config_keys = _module_string_set(
+        plugin_config.text, "_REQUIRED_KEYS"
+    )
+    if plugin_config_keys != EXPECTED_PLUGIN_PROVIDER_CONFIG_KEYS:
+        raise AuditInconclusive(
+            "plugin provider config keys changed: "
+            f"expected {sorted(EXPECTED_PLUGIN_PROVIDER_CONFIG_KEYS)}, "
+            f"got {sorted(plugin_config_keys)}"
+        )
+    from_json = find_qualified_def(
+        plugin_config.text, "ProviderActivationConfig.from_json"
+    )
+    _require_text(
+        from_json,
+        "object_pairs_hook=_unique_object",
+        "parse_constant=_reject_constant",
+        "zero_offsets_attested must be true",
+        "global channels must equal tp_size * TP-local channels",
+        "_require_sha256(payload, 'profile_sha256')",
+    )
+    validate_runtime = find_qualified_def(
+        plugin_config.text, "ProviderActivationConfig.validate_runtime"
+    )
+    _require_text(
+        validate_runtime,
+        "runtime model mismatch",
+        "runtime model revision",
+        "runtime TP size",
+        "runtime TP rank",
+        "full-attention layer",
+        "TP-local KV channels",
+        "torch.int8",
+    )
+    findings.append(
+        {
+            "id": "plugin-provider-schema-fails-closed-before-runtime",
+            "status": "confirmed-in-worktree-source",
+            "summary": (
+                "The plugin now owns a strict construction-time provider JSON "
+                "schema and compares it with actual Host runtime identity. It "
+                "rejects malformed or non-finite JSON, contract-key drift, bad "
+                "digests, nonzero-offset policy, TP/layer/channel mismatch and "
+                "non-INT8 cache identity. Profile loading and provider execution "
+                "remain unimplemented."
+            ),
+            "observed_keys": sorted(plugin_config_keys),
+            "evidence": [
+                source_ref(plugin_config, "_REQUIRED_KEYS", required_keys_node),
+                source_ref(
+                    plugin_config,
+                    "ProviderActivationConfig.from_json",
+                    from_json,
+                ),
+                source_ref(
+                    plugin_config,
+                    "ProviderActivationConfig.validate_runtime",
+                    validate_runtime,
+                ),
             ],
         }
     )
@@ -412,15 +522,25 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
             manager_repo, MANAGER_REPOSITORY, MANAGER_REVISION, path
         )
 
+    plugin_config_path = plugin_repo / PLUGIN_PROVIDER_CONFIG
+    plugin_config_raw = plugin_config_path.read_bytes()
+    units[f"plugin:{PLUGIN_PROVIDER_CONFIG}"] = SourceUnit(
+        repository=PLUGIN_REPOSITORY,
+        revision="worktree",
+        path=PLUGIN_PROVIDER_CONFIG,
+        text=plugin_config_raw.decode(),
+        sha256=hashlib.sha256(plugin_config_raw).hexdigest(),
+    )
+
     manifest_path = plugin_repo / PLUGIN_MANIFEST
     manifest_raw = manifest_path.read_bytes()
     manifest = json.loads(manifest_raw)
     findings = analyze(units, manifest)
     return {
         "schema_version": SCHEMA_VERSION,
-        "classification": "read-only-pinned-source-and-worktree-manifest-audit",
+        "classification": "read-only-pinned-source-and-worktree-plugin-audit",
         "activation_status": (
-            "HOST_CONFIG_CHANNEL_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
+            "HOST_CONFIG_AND_PLUGIN_SCHEMA_READY_PROFILE_AND_PROVIDER_STILL_MISSING"
         ),
         "runtime_compatible": False,
         "npu_started": False,
@@ -435,6 +555,10 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
             "sha256": hashlib.sha256(manifest_raw).hexdigest(),
             "implementation_status": manifest["implementation"][0]["status"],
         },
+        "plugin_provider_config": {
+            "path": PLUGIN_PROVIDER_CONFIG,
+            "sha256": hashlib.sha256(plugin_config_raw).hexdigest(),
+        },
         "sources": [
             {
                 "repository": unit.repository,
@@ -446,9 +570,9 @@ def audit(host_repo: Path, manager_repo: Path, plugin_repo: Path) -> dict[str, A
         ],
         "findings": findings,
         "required_closure": [
-            "Define a plugin-owned provider JSON schema and fail closed on model, "
-            "revision, config digest, profile digest, layer coverage, TP shape, and "
-            "zero-offset policy during provider construction.",
+            "Implement provider construction around the existing strict schema, load "
+            "the attested profile before graph capture, and compare its logical "
+            "tensor-content digest with profile_sha256.",
             "Supply and validate a revision-bound C8 profile before per-request "
             "eligibility; do not read NPU offset tensors in is_eligible, and prove the "
             "BF16 target reaches C8 cache write rather than default 1/0 parameters.",
@@ -485,7 +609,7 @@ def main() -> int:
     ) as error:
         result = {
             "schema_version": SCHEMA_VERSION,
-            "classification": "read-only-pinned-source-and-worktree-manifest-audit",
+            "classification": "read-only-pinned-source-and-worktree-plugin-audit",
             "activation_status": "INCONCLUSIVE",
             "runtime_compatible": None,
             "npu_started": False,

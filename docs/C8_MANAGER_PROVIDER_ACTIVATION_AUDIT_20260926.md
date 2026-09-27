@@ -8,8 +8,8 @@ Qwen3.5 BF16/profile correctness contract?
 
 ## Answer
 
-Not yet, but the configuration-carrier gap is now closed in the Host
-candidate. The remaining blockers are the plugin provider/schema, the exact
+Not yet, but the configuration carrier and plugin-owned schema gaps are now
+closed. The remaining blockers are the provider implementation, the exact
 revision-bound C8 profile, and proof that the public BF16 target reaches the C8
 cache-write and provider path.
 
@@ -66,12 +66,23 @@ This gives the plugin both actual runtime identity and one immutable,
 canonical provider-owned configuration document. The Host intentionally does
 not interpret project-specific profile fields.
 
+### Plugin construction schema
+
+The current worktree now contains a pure-Python, fail-closed provider schema.
+The audit structurally verifies its exact key set, duplicate/non-finite JSON
+rejection, digest syntax, zero-offset policy, TP channel relationship and
+runtime checks for model/revision, TP rank/size, admitted layer, channel count
+and INT8 cache dtype. The published manifest remains inert, so this schema is
+not yet an active provider.
+
 ## What is still blocked
 
-### Plugin schema and provider are missing
+### Provider implementation is missing
 
-The plugin must define and validate the JSON schema during provider
-construction. At minimum it must fail closed on:
+The schema now defines and validates the configured expectations. The provider
+still has to load that schema during construction, validate the actual profile
+content digest and provenance, and then implement the Host protocol. It must
+fail closed before graph capture on:
 
 - expected model repository, revision and model-config SHA256;
 - profile SHA256, calibration provenance and supported hardware;
@@ -79,9 +90,10 @@ construction. At minimum it must fail closed on:
 - explicit zero-offset-only policy;
 - expected paged NZ layout and cache-write ownership.
 
-The provider must compare these configured expectations with the runtime
-model, revision, TP rank/size and layer shape received from the Host. This
-validation must happen before request dispatch and graph capture.
+The schema already compares runtime model, revision, TP rank/size and layer
+shape received from the Host. What remains is wiring that validation to actual
+provider construction and the attested profile payload before request dispatch
+and graph capture.
 
 ### BF16-to-C8 reachability and profile are missing
 
@@ -114,8 +126,9 @@ prove all of the following:
 1. Disabled or absent provider preserves the built-in Host path.
 2. Manager dry-run merges the fixed factory with operator-owned settings and
    rejects conflicts.
-3. Wrong model/revision/config digest, profile digest, layer coverage, TP
-   shape, offset policy or graph mode fails before request execution.
+3. Wrong model/revision/config digest, logical profile-content digest, layer
+   coverage, TP shape, offset policy or graph mode fails before request
+   execution.
 4. Exactly the ten full-attention layers can construct the provider; the 30
    linear-attention layers cannot.
 5. Provider decline preserves native fallback, while errors after acceptance
