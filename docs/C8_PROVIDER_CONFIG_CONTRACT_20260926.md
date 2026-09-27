@@ -18,7 +18,7 @@ The schema is
 `vllm-ascend-adaptive-quantized-kv-provider/v1` and requires:
 
 - expected model and revision;
-- model-config and profile SHA256 digests;
+- model-config SHA256 and the logical profile-content SHA256 digest;
 - deployment-owned profile path and calibration provenance;
 - supported SoC list;
 - admitted full-attention layer IDs;
@@ -29,6 +29,16 @@ The schema is
 For the fixed target, the admitted layers are
 `3,7,11,15,19,23,27,31,35,39`, global channels are 512, and TP2-local
 channels are 256.
+
+`profile_sha256` is not the digest of a deployment directory, archive or full
+model shard. It is the deterministic `profile_content_sha256` emitted by
+`scripts/audit_c8_profile_artifact.py`: each admitted logical tensor contributes
+its canonical name/dtype/shape descriptor, byte length and exact payload bytes
+in sorted layer/field order. The receipt also exposes each tensor digest. This
+binds activation to the reviewed calibration values while remaining stable if
+the same tensors are repacked into different safetensors shards. It does not
+establish calibration quality; provenance and correctness gates remain
+separate requirements.
 
 ## Boundary
 

@@ -141,6 +141,10 @@ Before plugin integration or NPU work, the host owner must confirm:
   provider-construction work, not per-request eligibility. The source-backed
   status is recorded in
   [`C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md`](C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md).
+- Bind `profile_sha256` to the route-neutral logical profile-tensor digest
+  emitted by `scripts/audit_c8_profile_artifact.py`, rather than to packaging
+  metadata alone. Keep calibration provenance and runtime correctness as
+  separate fail-closed gates.
 - Keep the strict schema and runtime-identity gate in
   [`C8_PROVIDER_CONFIG_CONTRACT_20260926.md`](C8_PROVIDER_CONFIG_CONTRACT_20260926.md)
   independent of Host/Torch imports until profile loading and the actual

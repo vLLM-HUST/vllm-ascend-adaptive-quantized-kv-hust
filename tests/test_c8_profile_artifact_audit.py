@@ -20,6 +20,7 @@ def _write_fixture(
     *,
     nonzero_offset: bool = False,
     hybrid: bool = False,
+    scale_value: float = 0.25,
 ) -> None:
     text_config = {
         "architectures": ["FixtureForCausalLM"],
@@ -62,7 +63,7 @@ def _write_fixture(
             for field in ("scale", "offset"):
                 name = f"model.layers.{layer}.self_attn.{kind}_proj.kv_cache_{field}"
                 description[name] = "C8"
-                value = 0.25 if field == "scale" else 0.0
+                value = scale_value if field == "scale" else 0.0
                 if nonzero_offset and layer == 0 and kind == "k" and field == "offset":
                     value = 1.0
                 tensors[name] = _bf16([value] * 4)
@@ -105,6 +106,37 @@ def test_valid_float_weight_c8_profile_passes(tmp_path: Path) -> None:
     assert result["profile"]["tp_local_channels_per_tensor"] == 4
     assert result["profile"]["offset_nonzero_elements"] == 0
     assert result["profile"]["scale_minimum"] == pytest.approx(0.25)
+    assert len(result["profile"]["profile_content_sha256"]) == 64
+    assert len(result["profile"]["tensor_digests"]) == 8
+
+
+def test_profile_digest_binds_tensor_values(tmp_path: Path) -> None:
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    first.mkdir()
+    second.mkdir()
+    _write_fixture(first, scale_value=0.25)
+    _write_fixture(second, scale_value=0.5)
+
+    first_result = audit_profile(first, label="first")
+    second_result = audit_profile(second, label="second")
+
+    assert (
+        first_result["profile"]["profile_content_sha256"]
+        != second_result["profile"]["profile_content_sha256"]
+    )
+
+
+def test_profile_digest_is_independent_of_label(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+
+    first = audit_profile(tmp_path, label="first")
+    second = audit_profile(tmp_path, label="second")
+
+    assert (
+        first["profile"]["profile_content_sha256"]
+        == second["profile"]["profile_content_sha256"]
+    )
 
 
 def test_nonzero_offset_fails_closed(tmp_path: Path) -> None:

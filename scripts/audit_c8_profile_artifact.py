@@ -128,7 +128,7 @@ def _read_tensor(
     path: Path,
     data_start: int,
     metadata: dict[str, Any],
-) -> tuple[list[int], str, list[float]]:
+) -> tuple[list[int], str, list[float], bytes]:
     try:
         shape = [int(value) for value in metadata["shape"]]
         dtype = str(metadata["dtype"])
@@ -143,7 +143,33 @@ def _read_tensor(
     values = _decode_values(dtype, raw)
     if math.prod(shape) != len(values):
         raise AuditError(f"tensor shape/byte mismatch in {path.name}")
-    return shape, dtype, values
+    return shape, dtype, values, raw
+
+
+def _profile_digest_component(
+    *,
+    name: str,
+    dtype: str,
+    shape: list[int],
+    raw: bytes,
+) -> tuple[bytes, str]:
+    """Frame one logical tensor for the canonical profile receipt stream."""
+
+    descriptor = json.dumps(
+        {"name": name, "dtype": dtype, "shape": shape},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    tensor_digest = hashlib.sha256(raw).hexdigest()
+    component = b"".join(
+        (
+            len(descriptor).to_bytes(8, "big"),
+            descriptor,
+            len(raw).to_bytes(8, "big"),
+            raw,
+        )
+    )
+    return component, tensor_digest
 
 
 def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str, Any]:
@@ -214,6 +240,7 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
 
     headers: dict[str, tuple[int, dict[str, Any]]] = {}
     summaries: list[dict[str, Any]] = []
+    profile_digest = hashlib.sha256()
     for layer in sorted(profile_names):
         for field in sorted(REQUIRED_FIELDS):
             name = profile_names[layer][field]
@@ -227,7 +254,7 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
             metadata = header.get(name)
             if not isinstance(metadata, dict):
                 raise AuditError(f"profile tensor is absent from shard header: {name}")
-            shape, dtype, values = _read_tensor(shard, data_start, metadata)
+            shape, dtype, values, raw = _read_tensor(shard, data_start, metadata)
             if shape != [expected_channels]:
                 raise AuditError(
                     f"profile tensor {name} has shape {shape}; "
@@ -245,6 +272,13 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
                 nonzero != len(values) or min(values) <= 0.0
             ):
                 raise AuditError(f"scale must be finite and strictly positive: {name}")
+            digest_component, tensor_sha256 = _profile_digest_component(
+                name=name,
+                dtype=dtype,
+                shape=shape,
+                raw=raw,
+            )
+            profile_digest.update(digest_component)
             summaries.append(
                 {
                     "layer": layer,
@@ -255,6 +289,7 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
                     "maximum": max(values),
                     "nonzero": nonzero,
                     "elements": len(values),
+                    "sha256": tensor_sha256,
                 }
             )
 
@@ -297,6 +332,15 @@ def audit_profile(model_dir: Path, *, label: str, tp_size: int = 1) -> dict[str,
             "scale_tensor_count": len(scales),
             "scale_minimum": min(item["minimum"] for item in scales),
             "scale_maximum": max(item["maximum"] for item in scales),
+            "profile_content_sha256": profile_digest.hexdigest(),
+            "tensor_digests": [
+                {
+                    "layer": item["layer"],
+                    "field": item["field"],
+                    "sha256": item["sha256"],
+                }
+                for item in summaries
+            ],
         },
         "metadata_files": {
             config_path.name: _sha256(config_path),

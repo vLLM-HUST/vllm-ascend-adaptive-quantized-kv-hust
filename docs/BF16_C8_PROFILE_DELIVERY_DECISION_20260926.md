@@ -40,7 +40,9 @@ Package the unchanged BF16 model weights with:
   `3,7,11,15,19,23,27,31,35,39`;
 - 512 global channels per tensor, sharded to 256 channels per TP2 rank;
 - finite positive scales and explicit zero offsets;
-- pinned model/config/profile digests and calibration provenance.
+- pinned model/config/profile digests and calibration provenance. The profile
+  digest must bind the exact logical scale/offset tensor payloads, not merely
+  the index and description files.
 
 The operator supplies this artifact or wrapper model path. Existing ModelSlim
 auto-detection, parameter creation, checkpoint loading and TP sharding remain
@@ -116,3 +118,10 @@ unchanged and the Host explicitly owns cache quantization.
 
 No service, NPU run or performance claim is justified until one delivery route
 has an actual calibrated profile and passes the off-device construction gates.
+
+The route-neutral tensor receipt is now defined by
+`scripts/audit_c8_profile_artifact.py`. Its `profile_content_sha256` remains
+stable across labels and storage packaging, but changes when any admitted
+scale/offset payload changes. This closes artifact identity only; it does not
+claim that a profile exists for the fixed target or that its calibration is
+correct.
