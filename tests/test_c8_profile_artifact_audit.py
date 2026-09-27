@@ -15,12 +15,31 @@ def _bf16(values: list[float]) -> bytes:
     return struct.pack(f"<{len(words)}H", *words)
 
 
+def _write_safetensors(path: Path, tensors: dict[str, bytes]) -> None:
+    header: dict[str, object] = {"__metadata__": {"format": "pt"}}
+    data = bytearray()
+    for name in sorted(tensors):
+        raw = tensors[name]
+        start = len(data)
+        data.extend(raw)
+        header[name] = {
+            "dtype": "BF16",
+            "shape": [4],
+            "data_offsets": [start, len(data)],
+        }
+    encoded = json.dumps(header, separators=(",", ":")).encode()
+    padding = (-len(encoded)) % 8
+    encoded += b" " * padding
+    path.write_bytes(struct.pack("<Q", len(encoded)) + encoded + data)
+
+
 def _write_fixture(
     model_dir: Path,
     *,
     nonzero_offset: bool = False,
     hybrid: bool = False,
     scale_value: float = 0.25,
+    split_shards: bool = False,
 ) -> None:
     text_config = {
         "architectures": ["FixtureForCausalLM"],
@@ -68,25 +87,24 @@ def _write_fixture(
                     value = 1.0
                 tensors[name] = _bf16([value] * 4)
 
-    header: dict[str, object] = {"__metadata__": {"format": "pt"}}
-    data = bytearray()
-    for name in sorted(tensors):
-        raw = tensors[name]
-        start = len(data)
-        data.extend(raw)
-        header[name] = {
-            "dtype": "BF16",
-            "shape": [4],
-            "data_offsets": [start, len(data)],
-        }
-    encoded = json.dumps(header, separators=(",", ":")).encode()
-    padding = (-len(encoded)) % 8
-    encoded += b" " * padding
-    shard_name = "model-00001-of-00001.safetensors"
-    (model_dir / shard_name).write_bytes(
-        struct.pack("<Q", len(encoded)) + encoded + data
-    )
-    weight_map = {name: shard_name for name in tensors}
+    if split_shards:
+        names = sorted(tensors)
+        shard_names = (
+            "model-00001-of-00002.safetensors",
+            "model-00002-of-00002.safetensors",
+        )
+        groups = (
+            {name: tensors[name] for name in names[::2]},
+            {name: tensors[name] for name in names[1::2]},
+        )
+        weight_map = {}
+        for shard_name, group in zip(shard_names, groups, strict=True):
+            _write_safetensors(model_dir / shard_name, group)
+            weight_map.update(dict.fromkeys(group, shard_name))
+    else:
+        shard_name = "model-00001-of-00001.safetensors"
+        _write_safetensors(model_dir / shard_name, tensors)
+        weight_map = dict.fromkeys(tensors, shard_name)
     (model_dir / "config.json").write_text(json.dumps(config))
     (model_dir / "quant_model_description.json").write_text(json.dumps(description))
     (model_dir / "model.safetensors.index.json").write_text(
@@ -137,6 +155,24 @@ def test_profile_digest_is_independent_of_label(tmp_path: Path) -> None:
         first["profile"]["profile_content_sha256"]
         == second["profile"]["profile_content_sha256"]
     )
+
+
+def test_profile_digest_is_independent_of_shard_packaging(tmp_path: Path) -> None:
+    single = tmp_path / "single"
+    split = tmp_path / "split"
+    single.mkdir()
+    split.mkdir()
+    _write_fixture(single)
+    _write_fixture(split, split_shards=True)
+
+    single_result = audit_profile(single, label="single")
+    split_result = audit_profile(split, label="split")
+
+    assert (
+        single_result["profile"]["profile_content_sha256"]
+        == split_result["profile"]["profile_content_sha256"]
+    )
+    assert single_result["metadata_files"] != split_result["metadata_files"]
 
 
 def test_nonzero_offset_fails_closed(tmp_path: Path) -> None:
