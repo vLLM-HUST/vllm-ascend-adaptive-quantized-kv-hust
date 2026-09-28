@@ -55,6 +55,9 @@ Extension Manager 与 NPU serving 回执、回滚和退出清理证据，并为�
 Host/provider 版本、真实 Manager 激活、NPU 正确性、图回放、回滚与清理证据
 仍是性能测试和恢复公开展示前的强制门禁。
 
+10 月前的分级施工顺序见
+[`docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md`](docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md)。
+
 研究合同、实验脚本、原始证据和结论继续保存在
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv)，
 不会混入 PyPI 运行时包。

@@ -68,6 +68,9 @@ and reachable Host/provider revision, real Manager activation, NPU correctness,
 graph replay, rollback and cleanup evidence remain mandatory before performance
 testing or public relisting.
 
+The prioritized pre-October delivery plan is maintained in
+[`docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md`](docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md).
+
 ## Identity
 
 | Layer | Identifier |
