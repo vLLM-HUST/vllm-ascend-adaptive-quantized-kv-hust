@@ -127,15 +127,18 @@ Before plugin integration or NPU work, the host owner must confirm:
 6. The provider/kernel delivery route. PR #35 does not contain a project
    provider, a native paged-INT8 continuing-prefill operator, or activation.
 7. How to resolve the current CPU-UT CI gate before treating the PR as
-   validated. Test-only PR #37 declares the unchanged `V41CacheLayer` test
-   double and preserves the real Triton runtime package while mocking only its
-   hardware-facing driver. On replayed Host `main@5422a07c4`, pre-commit and
-   mypy passed and the complete CPU suite collected and ran: 6,768 tests passed,
-   49 skipped and 12 failed. The collection defect is therefore closed. Every
-   remaining failure was traced to a stale test fixture or expectation after a
-   current API change; PR #37 head `a04fa2b50` contains test-only repairs and is
-   rerunning the complete gate. The Host CPU baseline must not be reported as
-   green until that rerun passes.
+   validated. PR #37 head `3fb17f2a9`, rebased on Host
+   `main@17f681774`, repairs the CPU fixtures and preserves the existing
+   model-specific GLM pooled-cache allocation route, whose zero-stride aliases
+   are rejected by the current generic allocator. Run `36370993638` passed
+   pre-commit, mypy and the complete no-device CPU job: 6,890 tests passed,
+   49 skipped and 24 warnings. Its aggregate `ci-gate` failed only because a
+   production-source change now requires one maintainer test-selection label.
+   `ready-all` is applied and run `36372359941` has repeated the green
+   pre-commit/mypy/CPU job, but its required `select-tests` job is still queued
+   for the `linux-amd64-cpu-8-hk` self-hosted runner. The Host CPU baseline must
+   not be reported as fully green or available to PR #35 until that gate passes
+   and PR #37 lands.
 8. How the standard BF16 target reaches C8 storage and the provider. Current
    source configures PR #35 only through checkpoint metadata declaring
    `kv_cache_type=C8`; plugin enablement alone cannot make the BF16 path C8.
