@@ -196,6 +196,10 @@ Before plugin integration or NPU work, the host owner must confirm:
   has been checked.
 - Preserve the delivered CPU reference and historical evidence.
 - Prepare a bounded real-device correctness matrix without executing it.
+- Preregister the group-required Qwen3.5 benchmark as the official
+  `prefix-repetition-online-2chip` scenario without executing it before H4.
+  The frozen pilot and positive-result rule are in
+  [`QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](QWEN35_PREFIX_REPETITION_PILOT_20260928.md).
 - Prepare the restoration evidence index and exact Manager/NPU command plan,
   but leave every real activation command disabled until H3 closes.
 
