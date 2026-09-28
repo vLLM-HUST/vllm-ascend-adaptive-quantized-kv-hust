@@ -38,6 +38,23 @@ Extension Manager 与 NPU serving 回执、回滚和退出清理证据，并为�
 可复现实验 workload 继续由研究仓中的固定
 `intellistream/llm-serving-workloads` gitlink 提供。
 
+## 维护状态与当前交付目标
+
+- 插件维护与证据负责人：[`@XilingGao`](https://github.com/XilingGao)。
+- 宿主架构、接口交付与最终 go/no-go 负责人：
+  [`@ShuhaoZhangTony`](https://github.com/ShuhaoZhangTony)，责任边界记录在
+  [Issue #1](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1)。
+- 当前集成工作由 Draft PR #4 承载；恢复矩阵闭合前，默认发行包继续保持
+  `import_only`。
+- 第一组预注册交付测试固定为 `Qwen3.5-35B-A3B`、TP2、APC、MTP2、async、
+  `FULL_AND_PIECEWISE`，使用官方 benchmark 的
+  `prefix-repetition-online-2chip` 场景；合同见
+  [`docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md)。
+
+“持续维护”不等于“运行时已可用”。校准 profile、宿主已接纳且可达的
+Host/provider 版本、真实 Manager 激活、NPU 正确性、图回放、回滚与清理证据
+仍是性能测试和恢复公开展示前的强制门禁。
+
 研究合同、实验脚本、原始证据和结论继续保存在
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv)，
 不会混入 PyPI 运行时包。

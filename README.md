@@ -50,6 +50,24 @@ host owner accepts an exact interface revision and real-device correctness
 gates pass. Reproducible workload contracts remain in the research carrier
 with its fixed `intellistream/llm-serving-workloads` gitlink.
 
+## Maintenance and current delivery target
+
+- Plugin maintainer and evidence owner: [`@XilingGao`](https://github.com/XilingGao).
+- Host architecture, interface delivery, and final go/no-go owner:
+  [`@ShuhaoZhangTony`](https://github.com/ShuhaoZhangTony), as recorded in
+  [Issue #1](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1).
+- Active integration work is tracked in Draft PR #4; the default package remains
+  `import_only` until the restoration matrix is satisfied.
+- The first preregistered delivery test is `Qwen3.5-35B-A3B`, TP2, APC, MTP2,
+  async scheduling and `FULL_AND_PIECEWISE`, using the official
+  `prefix-repetition-online-2chip` benchmark scenario. Its contract is in
+  [`docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md).
+
+Maintained does not mean runtime-ready: calibrated profile delivery, an accepted
+and reachable Host/provider revision, real Manager activation, NPU correctness,
+graph replay, rollback and cleanup evidence remain mandatory before performance
+testing or public relisting.
+
 ## Identity
 
 | Layer | Identifier |
