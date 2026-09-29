@@ -106,6 +106,16 @@ vllm-hust-ext extension check org.vllm-hust.ascend-adaptive-quantized-kv
 Validation proves package discovery and metadata only. It is not a runtime or
 NPU result.
 
+The preregistered Qwen3.5 prefix-repetition pilot and its immutable completed
+result format are documented in
+[`docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md)
+and
+[`docs/QWEN35_PREFIX_PILOT_RESULT_VALIDATION_20260929.md`](docs/QWEN35_PREFIX_PILOT_RESULT_VALIDATION_20260929.md).
+Their validators freeze the comparison and check retained evidence; they do not
+authorize a model or NPU run.
+The owner-gated post-holiday sequence is frozen in
+[`docs/QWEN35_POST_HOLIDAY_EXECUTION_CHECKLIST_20260929.md`](docs/QWEN35_POST_HOLIDAY_EXECUTION_CHECKLIST_20260929.md).
+
 The repository CI runs the tests on Python 3.10, 3.12, and 3.14. Python 3.12
 also builds the wheel and sdist, validates the inert extension boundary, and
 retains the validated distributions for 14 days. CI does not publish to PyPI.
