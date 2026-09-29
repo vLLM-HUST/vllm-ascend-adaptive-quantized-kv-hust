@@ -177,6 +177,7 @@ def test_complete_correctness_receipt_passes() -> None:
         ("case", "correctness case record order"),
         ("dispatch", "dispatch path"),
         ("numerical", "numerical tolerance"),
+        ("boolean_numerical", "invalid absolute error"),
         ("graph", "first_replay"),
         ("cleanup", "project processes"),
     ],
@@ -194,6 +195,8 @@ def test_incomplete_or_drifted_receipt_fails_closed(mutation: str, match: str) -
         receipt["cases"][2]["observed_path"] = "native"
     elif mutation == "numerical":
         receipt["cases"][2]["numerical_oracle"]["max_absolute_error"] = 1.0
+    elif mutation == "boolean_numerical":
+        receipt["cases"][2]["numerical_oracle"]["max_absolute_error"] = False
     elif mutation == "graph":
         receipt["graph_lifecycle"]["first_replay"] = "FAIL"
     else:

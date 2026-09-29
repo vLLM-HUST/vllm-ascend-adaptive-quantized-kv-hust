@@ -172,7 +172,7 @@ def _validate_authorized_inputs(inputs: dict[str, Any]) -> None:
     oracle = _require_mapping(inputs, "numerical_oracle")
     for name in ("absolute_tolerance", "relative_tolerance"):
         value = oracle.get(name)
-        if not isinstance(value, (int, float)) or value < 0:
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
             raise ValueError(f"numerical oracle {name} must be non-negative")
     _require_text(oracle.get("approval_source"), "numerical oracle approval source")
 
@@ -255,7 +255,8 @@ def validate_receipt(
         raise ValueError("resource lease was not exclusive")
     session_minutes = resource.get("session_minutes")
     if (
-        not isinstance(session_minutes, (int, float))
+        isinstance(session_minutes, bool)
+        or not isinstance(session_minutes, (int, float))
         or not math.isfinite(session_minutes)
         or session_minutes <= 0
         or session_minutes > contract["resource_policy"]["max_session_minutes"]
@@ -300,7 +301,8 @@ def validate_receipt(
             (relative_error, "relative"),
         ):
             if (
-                not isinstance(value, (int, float))
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
                 or not math.isfinite(value)
                 or value < 0
             ):
