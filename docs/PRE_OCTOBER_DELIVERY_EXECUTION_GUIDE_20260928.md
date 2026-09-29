@@ -43,6 +43,12 @@
 
 ## 3. P0：立即处理的外部决策和贡献合规
 
+2026-09-29 的结构化就绪状态见
+[`QWEN35_P0_INPUT_READINESS_20260929.md`](QWEN35_P0_INPUT_READINESS_20260929.md)
+及对应的
+[`evidence/QWEN35_P0_INPUT_READINESS_20260929.json`](evidence/QWEN35_P0_INPUT_READINESS_20260929.json)。
+该回执补充当前事实，不改写预注册合同中的历史 planning snapshot。
+
 ### 3.1 推进插件 PR #4
 
 负责人：`XilingGao` 跟进，`ShuhaoZhangTony` 评审。
