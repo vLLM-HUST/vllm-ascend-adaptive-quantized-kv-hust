@@ -12,6 +12,7 @@ from scripts.validate_qwen35_correctness import (
     MODEL_REVISION,
     RECEIPT_SCHEMA,
     canonical_contract_sha256,
+    main,
     validate_contract,
     validate_receipt,
 )
@@ -208,3 +209,19 @@ def test_contract_target_drift_fails_closed() -> None:
 
     with pytest.raises(ValueError, match="target configuration"):
         validate_contract(contract)
+
+
+def test_cli_require_authorized_rejects_checked_in_contract(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "validate_qwen35_correctness.py",
+            str(CONTRACT_PATH),
+            "--require-authorized",
+        ],
+    )
+
+    assert main() == 2
+    assert "FAIL_CLOSED" in capsys.readouterr().out

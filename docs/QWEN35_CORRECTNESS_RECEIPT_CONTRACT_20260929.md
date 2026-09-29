@@ -16,6 +16,8 @@
   资源租约和 numerical oracle 阈值均为空。
 
 任一输入为空时，校验器拒绝授权后的 correctness receipt。不得用当前模板启动任务。
+对应的 Manager 命令映射、隔离配置、dry-run 和清理顺序见
+[`QWEN35_MANAGER_CORRECTNESS_RUNBOOK_20260929.md`](QWEN35_MANAGER_CORRECTNESS_RUNBOOK_20260929.md)。
 
 ## 固定执行顺序
 

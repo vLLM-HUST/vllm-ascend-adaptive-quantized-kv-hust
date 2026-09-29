@@ -354,9 +354,23 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("contract", type=Path)
     parser.add_argument("--receipt", type=Path)
+    parser.add_argument("--require-authorized", action="store_true")
     args = parser.parse_args()
     contract = json.loads(args.contract.read_text(encoding="utf-8"))
     result = validate_contract(contract)
+    if args.require_authorized and result["execution_authorized"] is not True:
+        print(
+            json.dumps(
+                {
+                    "status": "FAIL_CLOSED",
+                    "error": "correctness execution is not authorized",
+                    "contract_sha256": result["contract_sha256"],
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 2
     if args.receipt is not None:
         receipt = json.loads(args.receipt.read_text(encoding="utf-8"))
         result = validate_receipt(contract, receipt)
