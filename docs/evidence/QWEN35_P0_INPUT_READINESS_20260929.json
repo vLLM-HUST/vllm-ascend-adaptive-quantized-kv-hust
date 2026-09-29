@@ -1,0 +1,101 @@
+{
+  "schema_version": "adaptive-quantized-kv-qwen35-p0-readiness/v1",
+  "checked_date": "2026-09-29",
+  "status": "blocked_external_inputs",
+  "public_contribution": {
+    "repository": "vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust",
+    "visibility": "public",
+    "pull_request": 4,
+    "pull_request_url": "https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/pull/4",
+    "source_snapshot_before_this_receipt": "1b2592f29bdfa9aeb43c71c51d799b025ed3a038",
+    "state": "open_ready_mergeable",
+    "reviewer_requested": "ShuhaoZhangTony",
+    "review_state": "pending",
+    "ci": {
+      "run": 36442127172,
+      "status": "success",
+      "required_jobs_passed": 4
+    }
+  },
+  "host_integration": {
+    "provider_pull_request": {
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "number": 35,
+      "url": "https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35",
+      "head": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
+      "state": "open_draft",
+      "review_state": "pending",
+      "ci_state": "failed_pre_commit_and_ci_gate"
+    },
+    "baseline_fix_pull_request": {
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "number": 37,
+      "url": "https://github.com/vLLM-HUST/vllm-ascend-hust/pull/37",
+      "head": "3fb17f2a9eb140cd785d390645a9c743344f9d29",
+      "state": "open_ready_mergeable",
+      "review_state": "pending",
+      "ci_state": "incomplete_required_source_change_gate"
+    },
+    "accepted_host_revision": null,
+    "profile_route_decision": null
+  },
+  "execution_inputs": {
+    "model": {
+      "repository": "Qwen/Qwen3.5-35B-A3B",
+      "revision": "59d61f3ce65a6d9863b86d2e96597125219dc754",
+      "weight_precision": "BF16",
+      "availability": "missing_on_current_assigned_execution_inventory",
+      "tokenizer_digest": null,
+      "weight_digest": null
+    },
+    "kv_profile": {
+      "format": "calibrated_zero_offset_C8",
+      "tensor_parallel_size": 2,
+      "availability": "missing",
+      "owner": null,
+      "artifact_revision": null,
+      "logical_tensor_digest": null,
+      "shard_digests": null
+    },
+    "resource_lease": {
+      "accelerator": "Ascend 910B2",
+      "exclusive_device_count": 2,
+      "state": "unassigned",
+      "window": null,
+      "cleanup_owner": null
+    },
+    "benchmark": {
+      "repository": "vLLM-HUST/vllm-hust-benchmark",
+      "commit": "47c12e518a9188bb714bb6193d00260a7741841b",
+      "scenario": "prefix-repetition-online-2chip",
+      "state": "frozen"
+    }
+  },
+  "observed_non_substitutes": [
+    {
+      "artifact": "existing_public_host_source_test_fixture",
+      "model": "Eco-Tech/Qwen3.5-35B-A3B-w8a8-mtp",
+      "reason": "This W8A8 fixture is not the preregistered BF16 baseline plus calibrated INT8-KV treatment target."
+    }
+  ],
+  "required_owner_decisions": [
+    "Choose ModelSlim-compatible BF16+C8 sidecar/checkpoint or a Host-owned external profile source.",
+    "Assign profile generation and calibration ownership and publish revision-bound provenance.",
+    "Accept, revise, or replace Host PR 35 and identify the final accepted Host revision.",
+    "Provide the exact BF16 model and tokenizer location after infrastructure migration.",
+    "Assign an exclusive two-device 910B2 execution window and cleanup owner."
+  ],
+  "execution_authorized": false,
+  "prohibited_until_ready": [
+    "download_or_copy_qwen35_weights",
+    "start_model_service",
+    "occupy_accelerators_while_waiting_for_inputs",
+    "substitute_w8a8_fixture_for_preregistered_target",
+    "make_correctness_or_performance_claims"
+  ],
+  "claim_boundary": [
+    "This receipt records preparation and missing inputs; it is not NPU execution evidence.",
+    "The preregistered planning heads remain historical snapshots and are not accepted runtime revisions.",
+    "No model service or NPU task was started while producing this receipt."
+  ]
+}
