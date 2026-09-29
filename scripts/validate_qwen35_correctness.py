@@ -281,6 +281,11 @@ def validate_receipt(
             raise ValueError("worker profile shard identity drifted")
         if rank.get("full_attention_layers") != FULL_ATTENTION_LAYERS:
             raise ValueError("worker full-attention coverage drifted")
+        _require_sha(
+            rank.get("raw_receipt_sha256"),
+            f"worker rank {rank.get('rank')}",
+            SHA256_RE,
+        )
     if coverage.get("linear_attention_layers_rejected") != 30:
         raise ValueError("linear-attention layers were not rejected")
 

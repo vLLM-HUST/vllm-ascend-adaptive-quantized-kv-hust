@@ -23,9 +23,14 @@ ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主
 由宿主负责人实现，或由负责人明确指定其他交付方式。可复现实验 workload
 继续由研究仓中的固定 `intellistream/llm-serving-workloads` gitlink 提供。
 
-研究合同、实验脚本、原始证据和结论继续保存在
+历史实验脚本、原始证据和结论继续保存在
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv)，
-不会混入 PyPI 运行时包。
+不会混入 PyPI 运行时包。不包含真实运行结果的公开交付合同与 fail-closed 校验器
+维护在本仓库，见
+[`Qwen3.5 correctness 合同`](docs/QWEN35_CORRECTNESS_RECEIPT_CONTRACT_20260929.md)
+和
+[`原始证据 bundle 合同`](docs/QWEN35_P1_EVIDENCE_BUNDLE_20260929.md)。这些文档
+本身不授权执行，也不能单独支持 correctness 或性能结论。
 
 张老师指定保留的历史 Ascend PR #271/#279 及其合同证据边界记录在
 [`docs/LEGACY_CONTRACT_EVIDENCE.md`](docs/LEGACY_CONTRACT_EVIDENCE.md)。这些

@@ -1,0 +1,41 @@
+{
+  "schema_version": "adaptive-quantized-kv-qwen35-evidence-bundle/v1",
+  "status": "preregistered_blocked_on_h3",
+  "bundle_complete": false,
+  "correctness_contract_sha256": null,
+  "correctness_receipt_sha256": null,
+  "artifacts": [
+    {"id": "correctness-contract", "phase": "contract", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "correctness-receipt", "phase": "contract", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "execution-inputs", "phase": "inputs", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "runtime-environment", "phase": "inputs", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "launch-command", "phase": "inputs", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "resource-before", "phase": "resource", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "resource-after", "phase": "resource", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "service-stdout", "phase": "service", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "service-stderr", "phase": "service", "receipt_binding": null, "path": null, "size_bytes": null, "sha256": null},
+    {"id": "worker-rank-0", "phase": "worker", "receipt_binding": "worker.rank.0", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "worker-rank-1", "phase": "worker", "receipt_binding": "worker.rank.1", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "manager-discover", "phase": "manager", "receipt_binding": "manager.discover", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "manager-check", "phase": "manager", "receipt_binding": "manager.check", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "manager-plan", "phase": "manager", "receipt_binding": "manager.plan", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "manager-run", "phase": "manager", "receipt_binding": "manager.run", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-provider-disabled-baseline-equivalence", "phase": "case", "receipt_binding": "case.provider-disabled-baseline-equivalence", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-enabled-ineligible-native-fallback", "phase": "case", "receipt_binding": "case.enabled-ineligible-native-fallback", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-apc-continuing-prefill-eager", "phase": "case", "receipt_binding": "case.apc-continuing-prefill-eager", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-apc-continuing-prefill-full-and-piecewise-replay", "phase": "case", "receipt_binding": "case.apc-continuing-prefill-full-and-piecewise-replay", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-apc-mtp2-sync", "phase": "case", "receipt_binding": "case.apc-mtp2-sync", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-apc-mtp2-async", "phase": "case", "receipt_binding": "case.apc-mtp2-async", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-mixed-decode-continuing-prefill", "phase": "case", "receipt_binding": "case.mixed-decode-continuing-prefill", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "case-unsupported-cleanup-restart", "phase": "case", "receipt_binding": "case.unsupported-cleanup-restart", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "graph-lifecycle", "phase": "lifecycle", "receipt_binding": "graph_lifecycle", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "native-fallback", "phase": "lifecycle", "receipt_binding": "fallback", "path": null, "size_bytes": null, "sha256": null},
+    {"id": "rollback-cleanup", "phase": "lifecycle", "receipt_binding": "rollback_cleanup", "path": null, "size_bytes": null, "sha256": null}
+  ],
+  "claim_boundary": {
+    "correctness_evidence_complete": false,
+    "performance_authorized": false,
+    "quality_claim_authorized": false,
+    "public_surface_authorized": false
+  }
+}

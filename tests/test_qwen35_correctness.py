@@ -112,6 +112,7 @@ def _receipt(contract: dict) -> dict:
                     "status": "PASS",
                     "profile_shard_sha256": digest,
                     "full_attention_layers": FULL_ATTENTION_LAYERS,
+                    "raw_receipt_sha256": "f" * 64,
                 }
                 for rank, digest in enumerate(inputs["profile"]["tp2_shard_sha256"])
             ],
@@ -178,6 +179,7 @@ def test_complete_correctness_receipt_passes() -> None:
         ("dispatch", "dispatch path"),
         ("numerical", "numerical tolerance"),
         ("boolean_numerical", "invalid absolute error"),
+        ("worker_receipt", "worker rank 0"),
         ("graph", "first_replay"),
         ("cleanup", "project processes"),
     ],
@@ -197,6 +199,8 @@ def test_incomplete_or_drifted_receipt_fails_closed(mutation: str, match: str) -
         receipt["cases"][2]["numerical_oracle"]["max_absolute_error"] = 1.0
     elif mutation == "boolean_numerical":
         receipt["cases"][2]["numerical_oracle"]["max_absolute_error"] = False
+    elif mutation == "worker_receipt":
+        receipt["worker_coverage"]["ranks"][0]["raw_receipt_sha256"] = None
     elif mutation == "graph":
         receipt["graph_lifecycle"]["first_replay"] = "FAIL"
     else:
