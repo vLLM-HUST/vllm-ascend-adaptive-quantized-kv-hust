@@ -17,7 +17,7 @@ EXPECTED_VERSION = "0.1.0.dev0"
 EXPECTED_EXTENSION_ID = "org.vllm-hust.ascend-adaptive-quantized-kv"
 EXPECTED_ENTRY_POINT = "vllm_ascend_adaptive_quantized_kv"
 ENTRY_POINT_GROUP = "vllm_hust.extension_bundles"
-MANIFEST_NAME = "vllm-hust-extension-v0.2.json"
+MANIFEST_NAME = "vllm-hust-extension-v0.3.json"
 
 
 def _sha256(path: Path) -> str:
@@ -53,7 +53,7 @@ def validate_distribution(dist: Path) -> dict[str, object]:
             raise ValueError("extension manifest must be a regular file")
 
         payload = json.loads(archive.read(manifest))
-        if payload.get("schema_version") != "0.2-experimental":
+        if payload.get("schema_version") != "0.3-experimental":
             raise ValueError("extension manifest has an unexpected schema_version")
         if payload.get("extension_id") != EXPECTED_EXTENSION_ID:
             raise ValueError("extension manifest has an unexpected extension_id")
