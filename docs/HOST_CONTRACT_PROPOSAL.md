@@ -1,5 +1,22 @@
 # Generic Host Contract Proposal
 
+## Current status, 2026-09-26
+
+The latest ownership and execution control is
+[`ISSUE1_PR35_CONTROL_20260926.md`](ISSUE1_PR35_CONTROL_20260926.md).
+Host Draft PR
+[`vLLM-HUST/vllm-ascend-hust#35`](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35)
+at `11382832d9b88e6a7bdf7a20f4d47c7361fd4c8e` is the permitted minimal,
+generic, default-off provider-contract candidate. It implements part of the
+attention-execution decision below for review; it is not an accepted host API,
+does not provide the project provider/kernel, and does not transfer delivery or
+go/no-go ownership away from the host owner.
+
+The CPU reference and evidence package are delivered. Any next real-device
+validation must target `Qwen3.5-35B-A3B`, TP2, with APC, MTP2, async scheduling,
+and `FULL_AND_PIECEWISE` preserved. The plugin remains `import_only` pending
+host review and real-device correctness.
+
 ## Missing seam
 
 The archived project branch reached into private Ascend backend state to list
@@ -106,9 +123,10 @@ separate execution decision above. Approval of only the observer and lifecycle
 contracts does not authorize attention replacement, an NPU run, or a
 performance claim.
 
-Under the 2026-09-01 organization delivery policy, this proposal is a host
-dependency request rather than permission for this project to submit an
-optimization PR directly to `vllm-hust` or `vllm-ascend-hust`. If the contracts
-are required, the host owner must provide them or explicitly name another
-accepted delivery route. All Adaptive Quantized KV behavior, receipts, policy,
-and visible implementation progress remain in this organization plugin.
+The original 2026-09-01 policy treated this proposal only as a host dependency
+request. The 2026-09-20 correction permits the student to submit a minimal,
+generic, default-off candidate host contract for review, which is now PR #35.
+That permission changes the authorship route, not ownership: the host owner
+still decides whether to adopt it, who delivers the final interface, which
+revision is accepted, and when real-device work may start. All project-specific
+Adaptive Quantized KV behavior, receipts, and policy remain in this plugin.

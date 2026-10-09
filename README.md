@@ -26,14 +26,50 @@ model service, or make a performance claim. The current host baselines do not
 yet expose the reviewed contracts required by this extension. Installing the
 package is therefore inert.
 
+The CPU reference delivery was merged through plugin PR #3 at
+`8587845f29d70256103990ed6492837ddaf5a800`. The current host dependency and
+ownership boundary, including the status of host Draft PR #35, is controlled by
+[`docs/ISSUE1_PR35_CONTROL_20260926.md`](docs/ISSUE1_PR35_CONTROL_20260926.md).
+
+As of 2026-09-27, the extension is not listed on the public MOD Workshop. The
+owner requires a revision-bound calibrated profile, an accepted and reachable
+Host C8 path, real Extension Manager and NPU serving receipts, rollback and
+cleanup evidence, and separately traceable quality/performance artifacts before
+any request to restore the public surface. Package discovery or an active
+manifest alone is not sufficient. The auditable checklist is
+[`docs/PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md`](docs/PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md).
+
 ## Delivery policy
 
-This organization plugin is the project implementation carrier. The project
-does not submit optimization commits or PRs directly to `vllm-hust` or
-`vllm-ascend-hust`. Missing generic host interfaces are reviewed in this
-repository and must be delivered by the host owner or another explicitly
-approved route. Reproducible workload contracts remain in the research carrier
+This organization plugin is the project implementation carrier. A later owner
+correction permits a minimal, generic, default-off host-contract candidate to
+be submitted for CODEOWNERS/maintainer review. Host Draft PR #35 is such a
+candidate; it does not transfer host-interface delivery, adoption, or go/no-go
+ownership to this plugin project. Runtime activation remains blocked until the
+host owner accepts an exact interface revision and real-device correctness
+gates pass. Reproducible workload contracts remain in the research carrier
 with its fixed `intellistream/llm-serving-workloads` gitlink.
+
+## Maintenance and current delivery target
+
+- Plugin maintainer and evidence owner: [`@XilingGao`](https://github.com/XilingGao).
+- Host architecture, interface delivery, and final go/no-go owner:
+  [`@ShuhaoZhangTony`](https://github.com/ShuhaoZhangTony), as recorded in
+  [Issue #1](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1).
+- Active integration work is tracked in Draft PR #4; the default package remains
+  `import_only` until the restoration matrix is satisfied.
+- The first preregistered delivery test is `Qwen3.5-35B-A3B`, TP2, APC, MTP2,
+  async scheduling and `FULL_AND_PIECEWISE`, using the official
+  `prefix-repetition-online-2chip` benchmark scenario. Its contract is in
+  [`docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md).
+
+Maintained does not mean runtime-ready: calibrated profile delivery, an accepted
+and reachable Host/provider revision, real Manager activation, NPU correctness,
+graph replay, rollback and cleanup evidence remain mandatory before performance
+testing or public relisting.
+
+The prioritized pre-October delivery plan is maintained in
+[`docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md`](docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md).
 
 ## Identity
 
