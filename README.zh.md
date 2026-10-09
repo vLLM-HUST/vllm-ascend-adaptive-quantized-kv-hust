@@ -58,9 +58,14 @@ Host/provider 版本、真实 Manager 激活、NPU 正确性、图回放、回�
 10 月前的分级施工顺序见
 [`docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md`](docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md)。
 
-研究合同、实验脚本、原始证据和结论继续保存在
+历史实验脚本、原始证据和结论继续保存在
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv)，
-不会混入 PyPI 运行时包。
+不会混入 PyPI 运行时包。不包含真实运行结果的公开交付合同与 fail-closed 校验器
+维护在本仓库，见
+[`Qwen3.5 correctness 合同`](docs/QWEN35_CORRECTNESS_RECEIPT_CONTRACT_20260929.md)
+和
+[`原始证据 bundle 合同`](docs/QWEN35_P1_EVIDENCE_BUNDLE_20260929.md)。这些文档
+本身不授权执行，也不能单独支持 correctness 或性能结论。
 
 张老师指定保留的历史 Ascend PR #271/#279 及其合同证据边界记录在
 [`docs/LEGACY_CONTRACT_EVIDENCE.md`](docs/LEGACY_CONTRACT_EVIDENCE.md)。这些

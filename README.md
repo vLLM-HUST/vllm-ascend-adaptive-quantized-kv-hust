@@ -150,9 +150,16 @@ decisions are tracked in [the takeover control](docs/PR19_TAKEOVER_CONTROL_20260
 
 ## Research evidence
 
-Experiment contracts, raw evidence, runners, and claims remain in
+Historical experiment runners, raw evidence, and claims remain in
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv).
-They are not copied into the runtime package.
+They are not copied into the runtime package. Public delivery contracts and
+fail-closed validators that contain no runtime result are maintained here; see
+the
+[`Qwen3.5 correctness contract`](docs/QWEN35_CORRECTNESS_RECEIPT_CONTRACT_20260929.md)
+and its
+[`raw-evidence bundle contract`](docs/QWEN35_P1_EVIDENCE_BUNDLE_20260929.md).
+Neither document authorizes execution or supports a correctness or performance
+claim by itself.
 
 The exact legacy Ascend source drafts retained for host-contract design are
 listed in

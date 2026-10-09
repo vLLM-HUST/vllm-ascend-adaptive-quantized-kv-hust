@@ -1,0 +1,148 @@
+{
+  "schema_version": "adaptive-quantized-kv-qwen35-correctness-contract/v1",
+  "status": "preregistered_blocked_on_h3",
+  "execution_authorized": false,
+  "target": {
+    "model": "Qwen/Qwen3.5-35B-A3B",
+    "model_revision": "59d61f3ce65a6d9863b86d2e96597125219dc754",
+    "weight_precision": "BF16",
+    "tensor_parallel_size": 2,
+    "automatic_prefix_caching": true,
+    "num_speculative_tokens": 2,
+    "async_scheduling": true,
+    "compilation_mode": "FULL_AND_PIECEWISE",
+    "accelerator": "Ascend 910B2"
+  },
+  "runtime_inputs": {
+    "host_revision": null,
+    "plugin_revision": null,
+    "manager_revision": null,
+    "model_weight_sha256": null,
+    "tokenizer_sha256": null,
+    "profile": {
+      "logical_tensor_sha256": null,
+      "tp2_shard_sha256": [
+        null,
+        null
+      ],
+      "provenance_url": null
+    },
+    "resource_lease": {
+      "lease_id": null,
+      "window_start": null,
+      "window_end": null,
+      "cleanup_owner": null
+    },
+    "numerical_oracle": {
+      "absolute_tolerance": null,
+      "relative_tolerance": null,
+      "approval_source": null
+    }
+  },
+  "manager_phases": [
+    "discover",
+    "check",
+    "plan",
+    "run"
+  ],
+  "matrix": [
+    {
+      "id": "provider-disabled-baseline-equivalence",
+      "provider": "disabled",
+      "expected_path": "native",
+      "exact_output_required": true
+    },
+    {
+      "id": "enabled-ineligible-native-fallback",
+      "provider": "enabled_ineligible",
+      "expected_path": "native_fallback",
+      "exact_output_required": true
+    },
+    {
+      "id": "apc-continuing-prefill-eager",
+      "provider": "enabled_eligible",
+      "expected_path": "paged_int8_continuing_prefill",
+      "exact_output_required": false
+    },
+    {
+      "id": "apc-continuing-prefill-full-and-piecewise-replay",
+      "provider": "enabled_eligible",
+      "expected_path": "paged_int8_capture_replay",
+      "exact_output_required": false
+    },
+    {
+      "id": "apc-mtp2-sync",
+      "provider": "enabled_eligible",
+      "expected_path": "paged_int8_continuing_prefill",
+      "exact_output_required": false
+    },
+    {
+      "id": "apc-mtp2-async",
+      "provider": "enabled_eligible",
+      "expected_path": "paged_int8_continuing_prefill",
+      "exact_output_required": false
+    },
+    {
+      "id": "mixed-decode-continuing-prefill",
+      "provider": "enabled_eligible",
+      "expected_path": "mixed_native_and_paged_int8",
+      "exact_output_required": false
+    },
+    {
+      "id": "unsupported-cleanup-restart",
+      "provider": "enabled_unsupported",
+      "expected_path": "fail_closed_then_native_restart",
+      "exact_output_required": true
+    }
+  ],
+  "worker_contract": {
+    "required_ranks": [
+      0,
+      1
+    ],
+    "full_attention_layers": [
+      3,
+      7,
+      11,
+      15,
+      19,
+      23,
+      27,
+      31,
+      35,
+      39
+    ],
+    "linear_attention_layers_rejected": 30
+  },
+  "resource_policy": {
+    "exclusive_device_count": 2,
+    "allow_co_tenancy": false,
+    "max_session_minutes": 45,
+    "release_on_any_failure": true
+  },
+  "required_lifecycle_gates": [
+    "capture",
+    "first_replay",
+    "subsequent_replay",
+    "native_fallback",
+    "rollback",
+    "uninstall",
+    "service_exit",
+    "device_release"
+  ],
+  "stop_conditions": [
+    "identity_or_provenance_mismatch",
+    "shared_device_detected",
+    "unsupported_target_semantics",
+    "numerical_oracle_failure",
+    "graph_capture_or_replay_failure",
+    "fallback_or_rollback_failure",
+    "timeout",
+    "incomplete_process_or_device_cleanup"
+  ],
+  "claim_boundary": [
+    "This contract does not authorize execution until every runtime input is pinned and owner-approved.",
+    "A passing correctness receipt does not establish performance, quality, or public-surface readiness.",
+    "No failed or partial matrix may be rewritten as a passing result."
+  ]
+}
