@@ -1,0 +1,98 @@
+{
+  "schema_version": "adaptive-quantized-kv-qwen35-prefix-pilot/v1",
+  "status": "preregistered_blocked_on_correctness",
+  "target": {
+    "model": "Qwen/Qwen3.5-35B-A3B",
+    "model_revision": "59d61f3ce65a6d9863b86d2e96597125219dc754",
+    "weight_precision": "BF16",
+    "tensor_parallel_size": 2,
+    "automatic_prefix_caching": true,
+    "num_speculative_tokens": 2,
+    "async_scheduling": true,
+    "compilation_mode": "FULL_AND_PIECEWISE",
+    "accelerator": "Ascend 910B2",
+    "exclusive_accelerator_count": 2
+  },
+  "benchmark": {
+    "repository": "vLLM-HUST/vllm-hust-benchmark",
+    "commit": "47c12e518a9188bb714bb6193d00260a7741841b",
+    "registry_path": "src/vllm_hust_benchmark/data/official_scenarios.json",
+    "registry_sha256": "782177f7962e9ca855335d8a9269a325b3edb41b4682411cc7376a9f2027f91b",
+    "scenario": "prefix-repetition-online-2chip",
+    "scenario_sha256": "5a204be6135007f3a14a601913f37ddd5626cc369a018c785fec31d10c8053c4",
+    "defaults": {
+      "backend": "vllm",
+      "endpoint": "/v1/completions",
+      "dataset_name": "prefix_repetition",
+      "num_prompts": 200,
+      "input_len": 4096,
+      "output_len": 256
+    }
+  },
+  "planning_heads": {
+    "plugin_pr": 4,
+    "plugin_head": "49b8fb09d3113e98524894c07700d8bee298d9cc",
+    "host_pr": 35,
+    "host_head": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
+    "host_baseline_fix_pr": 37,
+    "host_baseline_fix_head": "3fb17f2a9eb140cd785d390645a9c743344f9d29"
+  },
+  "arms": {
+    "baseline": {
+      "plugin_enabled": false,
+      "kv_cache_precision": "BF16",
+      "provider": "native"
+    },
+    "treatment": {
+      "plugin_enabled": true,
+      "kv_cache_precision": "INT8",
+      "provider": "reviewed_paged_int8_continuing_prefill",
+      "profile": "revision_bound_calibrated_zero_offset"
+    }
+  },
+  "execution": {
+    "pilot_pairs": 1,
+    "order": [
+      "baseline",
+      "treatment"
+    ],
+    "max_minutes_per_arm": 30,
+    "fresh_service_per_arm": true,
+    "release_devices_after_each_arm": true,
+    "retain_raw_results": true,
+    "retain_process_and_device_cleanup_receipt": true
+  },
+  "gates": {
+    "before_service": [
+      "host_baseline_ci_complete",
+      "host_provider_revision_accepted_and_pinned",
+      "plugin_manager_candidate_activatable",
+      "qwen35_profile_calibrated_and_audited",
+      "two_exclusive_910b2_devices_leased"
+    ],
+    "before_timing": [
+      "manager_discover_check_plan_run_pass",
+      "tp2_worker_coverage_pass",
+      "apc_mtp2_async_hybrid_cache_correctness_pass",
+      "graph_capture_and_replay_pass",
+      "fallback_rollback_uninstall_cleanup_pass"
+    ],
+    "primary_metric": {
+      "name": "median_ttft_ms",
+      "direction": "lower",
+      "minimum_relative_improvement_percent": 5.0
+    },
+    "guardrails": {
+      "successful_requests": 200,
+      "error_rate_percent_max": 0.0,
+      "throughput_regression_percent_max": 3.0,
+      "output_token_count_must_match": true,
+      "no_correctness_or_graph_failure": true
+    }
+  },
+  "claim_boundary": [
+    "One passing pair is a bounded project-delivery pilot, not a general performance claim.",
+    "A failed gate or unsupported target is retained as diagnostic evidence and is not a speedup.",
+    "AgentX is not substituted for this benchmark scenario."
+  ]
+}

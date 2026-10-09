@@ -1,0 +1,239 @@
+# Issue #1 / Host PR #35 Control, 2026-09-26
+
+## Authority and precedence
+
+This document records the latest owner direction in plugin Issue #1 and
+supersedes older execution plans where they conflict. It does not rewrite or
+invalidate historical evidence.
+
+The CPU reference and the existing evidence package are accepted as delivered.
+The next host validation target is fixed to:
+
+- model: `Qwen3.5-35B-A3B` BF16;
+- tensor parallelism: `TP2`;
+- required retained behavior: APC, MTP2, async scheduling, and
+  `FULL_AND_PIECEWISE` graph mode.
+
+The released/default plugin remains `import_only` and fail closed until the
+Host/provider revision and manager-activation contract pass off-device review.
+An opt-in active candidate is then required for H4 correctness. No model
+service, operator retry, performance test, or performance claim is allowed
+before its stage gate.
+
+The owner follow-up on 2026-09-26 asks the existing PRs to produce an actually
+usable Host/provider version that the extension manager can enable, then prove
+the complete target's correctness. Performance validation remains owner-gated
+after that evidence. The current `import_only` state is still correct while the
+provider and activation contract are incomplete; it is now a staging state,
+not a direction to stop implementation.
+
+The newer owner notice on 2026-09-27 records that website PR
+[`vLLM-HUST/vllm-hust-website#303`](https://github.com/vLLM-HUST/vllm-hust-website/pull/303)
+removed `Adaptive Quantized KV` from the public MOD Workshop. This is the
+controlling public-surface state. Existing Draft PRs, CPU references and
+off-device audits remain useful, but none of them authorizes re-listing. A
+restoration request is allowed only after the revision-bound profile route,
+accepted Host reachability, real Manager lifecycle, NPU serving correctness,
+rollback/cleanup, and separately traceable quality/performance evidence below
+are complete.
+
+## Public-surface restoration boundary
+
+The internal implementation sequence and the public listing decision are
+separate:
+
+- an opt-in correctness candidate may be assembled after H3 without being
+  advertised or published as generally usable;
+- H4 must use Extension Manager on exact Host/plugin heads to execute real
+  `discover`, `check`, `plan` and `run` rather than infer activation from a
+  static manifest, schema test or inert wheel;
+- H4 must retain worker coverage, graph capture/replay, numerical correctness,
+  fallback, rollback/uninstall and process/device cleanup receipts from real
+  NPU serving;
+- any performance or quality statement must point to its own raw artifacts and
+  provenance. Successful loading or one correct request is not performance
+  evidence;
+- only H6 may request restoration of `public_surface` in Issue #1.
+
+The requirement-to-evidence checklist is maintained in
+[`PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md`](PUBLIC_SURFACE_RESTORATION_MATRIX_20260927.md).
+
+## Ownership boundary
+
+| Area | Owner | Current boundary |
+| --- | --- | --- |
+| Final host route and go/no-go | Shuhao / host owner | Selects or rejects the host integration route and exact accepted host revision |
+| Host interface delivery | Shuhao / assigned host maintainer | Remains host-owned; it is not transferred to the plugin project |
+| Candidate host contract | XilingGao, through Draft PR #35 | Review input only: minimal, generic, default-off implementation allowed by the 2026-09-20 correction |
+| Plugin contracts and adapter | XilingGao | May implement the reviewed candidate off-device, but must prove target reachability before activation |
+| CPU reference, tests, and evidence | XilingGao | Delivered; may be maintained without implying NPU support |
+| Correctness-only activation | XilingGao plus host review | Allowed only at H3 for the pinned candidate; remains opt-in and fail closed |
+| Performance evidence | Shuhao / owner-gated delivery | Blocked until the complete H4 correctness matrix passes |
+
+Draft PR #35 therefore does not contradict host ownership. It is a candidate
+implementation submitted for CODEOWNERS/maintainer review. Acceptance, adoption,
+assignment, merge, and the final delivery revision still belong to the host
+owner and maintainers.
+
+## What Draft PR #35 resolves as a candidate
+
+Draft PR
+[`vLLM-HUST/vllm-ascend-hust#35`](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35)
+is currently pinned here at
+`084f70f50dfcdf2daf66b3a31813bc982c2d1d09`, rebased without patch changes
+onto `vllm-ascend-hust@fbe4911bb54ce493b3fcbbf6238b032b9dc07ec6`. Its
+candidate source addresses:
+
+1. Default-off `module:factory` provider discovery instead of a project-specific
+   import or monkey patch.
+2. A typed request boundary carrying causal multi-token TND query/output,
+   paged 5D NZ INT8 K/V, block table, cumulative query/KV lengths, TP-local
+   scales and offsets, GQA/head/block/layout metadata, masks, and graph/capture
+   context.
+3. Host-side identification of cached multi-token prefill; all-new prefill and
+   decode remain on native paths.
+4. Mixed-batch separation where continuing-prefill rows may reach the provider
+   while decode rows remain native.
+5. Explicit pre-acceptance fallback through `is_eligible=False`; after provider
+   acceptance, provider errors propagate fail closed.
+6. Output and workspace lifetime retention needed by capture-sensitive code.
+7. A default-disabled path intended to preserve current host behavior when the
+   provider is not configured.
+8. A CPU-only mixed-batch contract test now locks the decode-row removal and
+   corresponding query/output, cumulative-length, KV-length, and block-table
+   slicing assumptions.
+9. A finite JSON provider-config channel now combines operator-owned settings
+   with actual model/revision, TP rank/size, layer shape and dtype in one
+   immutable factory input before graph capture.
+
+These are source-level properties of the candidate, not an accepted public API
+or a real-device result.
+
+## What still requires host-owner confirmation
+
+Before plugin integration or NPU work, the host owner must confirm:
+
+1. Whether PR #35's provider architecture is accepted, should be revised, or
+   should be replaced by another host-owned interface.
+2. The assigned host maintainer, review route, and exact accepted/merged host
+   commit that plugin work may depend on.
+3. Whether the request and result semantics cover `Qwen3.5-35B-A3B` with TP2,
+   APC, MTP2, async scheduling, mixed batches, and
+   `FULL_AND_PIECEWISE` capture/replay.
+4. Capture ordering, replay stability, workspace lifetime, fallback behavior,
+   failure behavior, and disabled-path equivalence.
+5. Whether the separate observer and ACL graph lifecycle contracts are needed,
+   and their accepted identifiers or replacements.
+6. The provider/kernel delivery route. PR #35 does not contain a project
+   provider, a native paged-INT8 continuing-prefill operator, or activation.
+7. How to resolve the current CPU-UT CI gate before treating the PR as
+   validated. PR #37 head `3fb17f2a9`, rebased on Host
+   `main@17f681774`, repairs the CPU fixtures and preserves the existing
+   model-specific GLM pooled-cache allocation route, whose zero-stride aliases
+   are rejected by the current generic allocator. Run `36370993638` passed
+   pre-commit, mypy and the complete no-device CPU job: 6,890 tests passed,
+   49 skipped and 24 warnings. Its aggregate `ci-gate` failed only because a
+   production-source change now requires one maintainer test-selection label.
+   `ready-all` is applied and run `36372359941` has repeated the green
+   pre-commit/mypy/CPU job, but its required `select-tests` job is still queued
+   for the `linux-amd64-cpu-8-hk` self-hosted runner. The Host CPU baseline must
+   not be reported as fully green or available to PR #35 until that gate passes
+   and PR #37 lands.
+8. How the standard BF16 target reaches C8 storage and the provider. Current
+   source configures PR #35 only through checkpoint metadata declaring
+   `kv_cache_type=C8`; plugin enablement alone cannot make the BF16 path C8.
+   See [`BF16_C8_REACHABILITY_AUDIT_20260926.md`](BF16_C8_REACHABILITY_AUDIT_20260926.md).
+9. Which revision-bound calibration profile or Host-owned scale source supplies
+   the exact BF16 target's K/V scales. Runtime `calculate_kv_scales` is disabled
+   on Ascend, and default `1/0` parameters are not correctness evidence.
+10. Whether the correctness candidate accepts only zero offsets. The current
+    cache writer adds offsets while the dense fallback does not subtract them;
+    nonzero offsets must fail closed until the Host paths share one formula.
+11. Whether the supplied profile matches the pinned hybrid model exactly: C8
+    metadata only for full-attention layers
+    `3,7,11,15,19,23,27,31,35,39`, 512 global channels per tensor, and 256
+    channels per TP2 rank. Linear-attention layers must not be admitted to the
+    provider.
+12. Which BF16-to-C8 profile delivery route owns the pre-provider C8 selection:
+    a ModelSlim-compatible BF16+C8 sidecar/checkpoint artifact for the shortest
+    correctness baseline, or a new Host-owned external scale-source hook for
+    the long-term plugin route. The startup-order and implementation tradeoff
+    are recorded in
+    [`BF16_C8_PROFILE_DELIVERY_DECISION_20260926.md`](BF16_C8_PROFILE_DELIVERY_DECISION_20260926.md).
+
+## Allowed work before confirmation
+
+- Keep this ownership/dependency map current in Issue #1 and PR #35.
+- Audit the exact host source for target-model and required-mode dependencies.
+- Add fail-closed, CPU-only fixtures and contract tests that do not claim host
+  acceptance or runtime reachability.
+- Implement a lazy, default-off provider candidate and its manager-activation
+  contract off-device, while retaining `import_only` until target reachability
+  and activation tests are complete.
+- Use the Extension Manager's built-in vLLM Provider. Static activation may fix
+  the provider factory, while deployment profile settings remain
+  operator-owned `--additional-config`; do not create a private Manager
+  Provider to bypass the Host contract.
+- Define and test the plugin-owned provider JSON schema now that the Host
+  candidate supplies canonical construction-time configuration and runtime
+  identity. Profile loading, digest checks and zero-offset validation remain
+  provider-construction work, not per-request eligibility. The source-backed
+  status is recorded in
+  [`C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md`](C8_MANAGER_PROVIDER_ACTIVATION_AUDIT_20260926.md).
+- Bind `profile_sha256` to the route-neutral logical profile-tensor digest
+  emitted by `scripts/audit_c8_profile_artifact.py`, rather than to packaging
+  metadata alone. Keep calibration provenance and runtime correctness as
+  separate fail-closed gates.
+- Keep the strict schema and runtime-identity gate in
+  [`C8_PROVIDER_CONFIG_CONTRACT_20260926.md`](C8_PROVIDER_CONFIG_CONTRACT_20260926.md)
+  independent of Host/Torch imports until profile loading and the actual
+  provider factory are available.
+- Use
+  [`C8_PROVIDER_FIELD_VERIFICATION_MATRIX_20260927.md`](C8_PROVIDER_FIELD_VERIFICATION_MATRIX_20260927.md)
+  as the claim boundary: schema validation, Host-bound CPU checks, standalone
+  artifact receipts and real-device correctness are distinct evidence levels.
+  Do not describe a field as verified when only its syntax or configured label
+  has been checked.
+- Preserve the delivered CPU reference and historical evidence.
+- Prepare a bounded real-device correctness matrix without executing it.
+- Preregister the group-required Qwen3.5 benchmark as the official
+  `prefix-repetition-online-2chip` scenario without executing it before H4.
+  The frozen pilot and positive-result rule are in
+  [`QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](QWEN35_PREFIX_REPETITION_PILOT_20260928.md).
+- Prepare the restoration evidence index and exact Manager/NPU command plan,
+  but leave every real activation command disabled until H3 closes.
+
+## Prohibited work before confirmation
+
+- Do not change `import_only`, publish an active wheel, or run a service before
+  the H3 provider/manager contract is complete and pinned for correctness.
+- Do not start a model service, reserve an NPU, run an operator probe, or repeat
+  previously failed native operator calls.
+- Do not publish performance, memory, graph, or quality claims.
+- Do not treat a Draft PR, dry run, projected result, or source audit as host
+  acceptance or real-device evidence.
+- Do not make project code responsible for private host graph-pool state.
+- Do not request website re-listing or mark `public_surface` restored from an
+  active manifest, successful import, Manager dry run or isolated operator
+  result.
+
+## Ordered stages
+
+| Stage | Work | Exit condition |
+| --- | --- | --- |
+| H0 | Publish this PR #35-to-owner-decision mapping in Issue #1 | Issue reply links the exact PR head and separates resolved candidate work from pending host decisions |
+| H1 | Source-only target/mode dependency audit | Every Qwen3.5/TP2/APC/MTP2/async/FULL_AND_PIECEWISE dependency is mapped to source, test, unknown, or blocker in [`QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md`](QWEN35_TARGET_DEPENDENCY_AUDIT_20260926.md) |
+| H2 | Host CI and BF16-to-C8 reachability | PR #37 is landed and the Host CPU-UT environment can collect tests; the owner selects and implements a revision-bound profile route covering exactly the ten full-attention layers with 512 global/256 TP2-local channels, zero offsets and auditable calibration provenance; the exact BF16 target constructs the reviewed paged-INT8 request without substituting a different model |
+| H3 | Accepted Host/provider and plugin-manager candidate | The Host owner accepts and pins reachable C8 selection/loading plus the provider carrier; unsupported layers/configurations fail closed; exact Host/Manager/plugin revisions are pinned; the provider recomputes profile identity/provenance and Manager disabled/conflict/enabled tests pass; the candidate may become internally activatable but remains off the public surface |
+| H4 | Real Manager and NPU serving correctness | On exact H3 heads, Manager `discover/check/plan/run` reaches the provider; the pinned BF16 target passes TP2, APC, MTP2, async, hybrid attention/Mamba cache, worker coverage, graph capture/replay, numerical correctness, fallback, rollback/uninstall, exit cleanup and resource-release gates with raw receipts |
+| H5 | Performance and quality evidence | Only after H4; preregistered matched runs may measure TTFT/TPOT, throughput, memory and conversion cost, while quality is evaluated under the fixed target contract. Every conclusion links its own raw artifact and provenance; no result is inferred from activation success |
+| H6 | Public-surface restoration packet | Issue #1 links final PRs, exact heads, CI, calibrated profile provenance, Manager lifecycle receipts, NPU correctness/cleanup evidence and any claimed H5 artifacts; only then request owner review to restore `public_surface` and the website listing |
+
+## Stop conditions
+
+Stop immediately on ambiguous ownership, unpinned source or model identity,
+unsupported target semantics, disabled-path drift, graph capture/replay drift,
+incorrect output, incomplete cleanup, shared-device conflict, timeout, or a
+request to infer performance from non-device evidence. Record the receipt and
+return to the responsible owner; do not silently fall back to a different
+target or route.
