@@ -26,7 +26,7 @@ MANAGER_TEST_CLI = "tests/test_cli.py"
 HOST_CONFIG = "vllm_ascend/ascend_config.py"
 HOST_PROVIDER = "vllm_ascend/attention/continuing_prefill.py"
 HOST_ATTENTION = "vllm_ascend/attention/attention_v1.py"
-PLUGIN_MANIFEST = "src/vllm_ascend_adaptive_quantized_kv/vllm-hust-extension-v0.2.json"
+PLUGIN_MANIFEST = "src/vllm_ascend_adaptive_quantized_kv/vllm-hust-extension-v0.3.json"
 PLUGIN_PROVIDER_CONFIG = "src/vllm_ascend_adaptive_quantized_kv/provider_config.py"
 
 EXPECTED_PROVIDER_CONFIG_FIELDS = {

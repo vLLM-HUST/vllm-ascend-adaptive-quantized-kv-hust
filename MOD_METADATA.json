@@ -20,7 +20,7 @@
   "mod_id": "ascend-adaptive-quantized-kv",
   "repository": "vllm-ascend-adaptive-quantized-kv-hust",
   "responsibility": {
-    "advisor_status": "unknown",
+    "advisor_status": "not_declared",
     "advisors": [],
     "maintainers": [
       {
