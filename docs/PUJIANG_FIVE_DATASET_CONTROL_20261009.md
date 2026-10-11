@@ -4,6 +4,10 @@
 
 ## 0. 最新控制覆盖：V5.5
 
+10 月 12 日收到的五封通知已[逐项对齐 GitHub 原帖](PUJIANG_MAIL_ALIGNMENT_20261012.md)。
+它们不含 AQKV 新批准；本轮独立推进 [Terminal 源码/政策核验](PUJIANG_TERMINAL_SOURCE_AUDIT_20261012.md)，
+不因其他 MOD 服务恢复而继承其资源、接纳或质量证据。正式沙箱与任务门禁保留。
+
 benchmark PR #275 已合并到 `9e7f83388d72a37767fd9f24636219093ecbe662`，
 当前执行 authority 是 [V5.5 对齐控制](PUJIANG_V55_ALIGNMENT_20261012.md)。正式
 35B/TP2/BF16、B0/B1、五数据集及 E1/E2 不启用保持不变；新增明确 B0 回执归属

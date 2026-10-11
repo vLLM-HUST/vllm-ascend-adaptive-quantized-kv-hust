@@ -75,6 +75,9 @@ with its fixed `intellistream/llm-serving-workloads` gitlink.
   The [HLE/SWE source audit](docs/PUJIANG_HLE_SWE_SOURCE_AUDIT_20261012.md) binds
   public HLE inventories and actual SWE source rows to pinned provenance; it does
   not rerun raw HLE data, sandbox tasks, judges, or registry layer verification.
+  The [Terminal source audit](docs/PUJIANG_TERMINAL_SOURCE_AUDIT_20261012.md)
+  binds source bytes and task policies separately from registry images, staged
+  executable modes, backend availability, verifier execution and task quality.
   Offline rescoring does not establish official scores or AQKV runtime evidence.
 - The existing preregistered `Qwen3.5-35B-A3B`, TP2, APC, MTP2, async and
   `FULL_AND_PIECEWISE` prefix-repetition pilot is retained as supplementary
