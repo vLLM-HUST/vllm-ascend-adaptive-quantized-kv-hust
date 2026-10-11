@@ -64,6 +64,9 @@ manifest、验签通过，并验证字段可生成唯一命令且与实际生效
 2. 复核新 Host main `82f586f8dcb5f92f8f3d55727bc05b3e2887606d`：目标 C8 分派及
    materialization 的八个函数 AST 相同；七组非数值 stub 复现只证明分支控制。
    [路径核验设计](PUJIANG_PATH_VERIFICATION_PLAN_20261012.md) 完成，实际路径回执仍未获得。
+   后续 [HLE/SWE 离线对应核验](PUJIANG_HLE_SWE_SOURCE_AUDIT_20261012.md) 已完成
+   HLE 公开清单/指针与 SWE 实际源行/harness blob 对应；不等于完整 HLE 原题重跑、
+   镜像/沙箱/judge 或正式数据范围已获准，执行标志继续为 false。
 3. 继续送审当前插件 Draft PR #12；保持 Host #35/#37 原 head 不动。等待 #37 七文件
    测试候选的提交/正常 CI 路线答复，不能在旧产品分支上绕过设备和总 gate。
    七个候选文件在新 main 原字节不变，独立副本 patch apply-check 通过；这不是 CI。
@@ -85,7 +88,10 @@ python scripts/validate_pujiang_readiness.py
 python -m pytest -q tests/test_pujiang_readiness.py
 ```
 
-输出 `planning_valid_execution_blocked` 仅证明当前规划一致。99 项相关本地测试通过；
-完整显式 opt-in 回归为 807 passed、零失败/错误/skip，默认为 783 passed / 24 skip。
+输出 `planning_valid_execution_blocked` 仅证明当前规划一致。V5.5 同步阶段 99 项
+相关本地测试通过；该阶段完整显式 opt-in 为 807 passed、零失败/错误/skip，
+默认为 783 passed / 24 skip，保留为历史回执。
 24 项需外部源码/资产/tokenizer 的集成没有在默认环境执行；完整本地回执不能替代
 公共 CI、Host/NPU 或正式成绩。构建与公共 CI 按各自确切提交单独记录。
+后续来源核验增量的完整本地回归为 865 passed / 0 skip，默认 840 passed / 25 skip；
+新数据集真实输入集成默认增加一项 skip，不能将缺输入提升为通过。

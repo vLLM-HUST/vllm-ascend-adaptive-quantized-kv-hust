@@ -7,6 +7,11 @@
 同日后续 MMLU 固定源文件/tokenizer 的小文件核验与来源绑定增量见
 [`PUJIANG_MMLU_SOURCE_PLAN_20261010.md`](PUJIANG_MMLU_SOURCE_PLAN_20261010.md)。
 
+2026-10-12 增量：[HLE/SWE 来源对应核验](PUJIANG_HLE_SWE_SOURCE_AUDIT_20261012.md)
+已核验 HLE 2500 条公开清单/指针及 SWE 642 条实际源行/5778 项 harness blob
+映射。下面的“未重跑”描述保留为最初审查时点；本增量仍未重读真实 HLE 原题、
+全部 SWE harness 内容或镜像层，不是完整上游审计或任务执行，不解除权利/后端门禁。
+
 ## 1. 审查结论
 
 | 入口 | 可复用部分 | 不可直接继承的部分 |
