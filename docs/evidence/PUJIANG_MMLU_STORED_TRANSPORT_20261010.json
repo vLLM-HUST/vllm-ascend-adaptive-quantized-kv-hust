@@ -1,0 +1,31 @@
+{
+  "schema_version": "aqkv-mmlu-stored-transport-development-receipt/v1",
+  "evidence_kind": "development-fixture",
+  "status": "stored-transport-development-fixture-integration-passed",
+  "source_implementation_revision": "8ed7ec9a16075c5bce5644a68a712139a6e5d403",
+  "case_count_per_arm": 70,
+  "synthetic_decodable_outputs_per_arm": 20,
+  "synthetic_length_limited_per_arm": 10,
+  "synthetic_failure_counts_per_arm": {
+    "http-error": 10,
+    "timeout": 10,
+    "connection-error": 10,
+    "not-attempted": 10,
+    "invalid-json-response": 10
+  },
+  "scorer_bundle_sha256": "a1b9d6a95b47797b094e14fe4f28ace22e190edcc753ece00ae38413e9254da3",
+  "private_report_sha256": "e1f9e89af2f79f5ddecaf84f238f52a634c5f92719c8940569c8eb006eecf7b5",
+  "model_requests_sent_by_this_check": 0,
+  "serving_tokenizer_verified": false,
+  "transport_verified": false,
+  "task_quality": null,
+  "performance_result": null,
+  "claim_boundary": {
+    "runtime_ready": false,
+    "execution_authorized": false,
+    "task_quality_claim": false,
+    "performance_claim": false,
+    "public_surface_restoration": false
+  },
+  "boundary": "Synthetic stored records test local request identity, response normalization and the pinned scorer denominator. No actual serving, timeout, retry, model answer, token parity or formal result was verified."
+}

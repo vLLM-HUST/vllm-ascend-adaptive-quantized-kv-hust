@@ -1,5 +1,10 @@
 # Qwen3.5 Prefix-Repetition Pilot, 2026-09-28
 
+As of 2026-10-09, this retained pilot is supplementary diagnostic evidence.
+It does not replace the five Pujiang-specified task-quality evaluations. The
+current delivery priority is in [the five-dataset control](PUJIANG_FIVE_DATASET_CONTROL_20261009.md).
+The original preregistered parameters below are retained without alteration.
+
 ## Why this group
 
 The project-group delivery notice requires at least one `Qwen3.5-35B` test

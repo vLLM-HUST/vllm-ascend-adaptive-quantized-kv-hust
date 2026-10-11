@@ -1,0 +1,50 @@
+{
+  "status": "source-bound-stored-token-parity-fixtures-verified",
+  "evidence_kind": "development-fixture",
+  "fixed_upstream_tokenize_reference": "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
+  "scorer_bundle_sha256": "a1b9d6a95b47797b094e14fe4f28ace22e190edcc753ece00ae38413e9254da3",
+  "fixtures": [
+    {
+      "mode": "matching-local-id-copies",
+      "case_count_per_arm": 70,
+      "fixture_token_origin": "copied-local-IDs-not-server-output",
+      "source_binding_rebuilt": true,
+      "scoring_blocked": false,
+      "stored_token_parity_failure_counts": {"B0": {}, "B1": {}},
+      "report_sha256": "562b037202a19fb09335163a2a146798c2cb457d2d196380b2d1a451e66e207b"
+    },
+    {
+      "mode": "same-count-one-token-changed",
+      "case_count_per_arm": 70,
+      "fixture_token_origin": "copied-local-IDs-not-server-output",
+      "source_binding_rebuilt": true,
+      "scoring_blocked": true,
+      "stored_token_parity_failure_counts": {"B0": {}, "B1": {"token-ids-mismatch": 1}},
+      "report_sha256": "63d2638ff18cee33eb0d1c913a38eb44287197b474ae009f4c20b4730b1b8019"
+    }
+  ],
+  "validation": {
+    "plugin_local_tests": 780,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "new_parity_tests": 64,
+    "new_strict_boolean_handshake_test": 1,
+    "upstream_source_check": "hash-and-AST-only-not-live-runtime"
+  },
+  "model_requests_sent": 0,
+  "tokenize_network_requests_sent": 0,
+  "real_serving_origin_verified": false,
+  "release_signature_verified": false,
+  "formal_transport_verified": false,
+  "execution_authorized": false,
+  "task_quality_claim": false,
+  "performance_claim": false,
+  "source_sha256": {
+    "scripts/pujiang_loopback_transport.py": "68f38fc5ab11702877a384eb554393f04a721286269209672a535c054fabeba1",
+    "scripts/pujiang_mmlu_token_parity.py": "cca1ffc0c0ce9b98bd5e74f6270a62b2de89f30ebbf5adcefdf91a2557e17f27",
+    "scripts/validate_pujiang_mmlu_pair.py": "847b66a01c02a65652d7c859854cbf778d3f3da79c697abbc36a68522491bdd6",
+    "tests/test_pujiang_loopback_transport.py": "adc051d3b41dceb44cf1f03b5d6ed6de58f2eb97c4e0e9c2bce48fdcef136c44",
+    "tests/test_pujiang_mmlu_token_parity.py": "1198122770701fa1fb9da14df960eb9ca432632f4d1a99fbc5112d424706bc7e"
+  }
+}
