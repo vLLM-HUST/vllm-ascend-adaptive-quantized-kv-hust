@@ -39,9 +39,9 @@ EXECUTION_FIELDS = (
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MATRIX = ROOT / "docs/evidence/PUJIANG_AQKV_APPLICABILITY_20261009.json"
 DEFAULT_PROGRAM = ROOT / "docs/evidence/PUJIANG_DATASET_PROGRAM_SOURCE_20261009.json"
-DELIVERY_REVISION = "b32fcbdaf8d3237936b35f9f4ba441bf2d64b361"
-DELIVERY_SHA256 = "0e4e14a2ad0b6a2fe351b817c03519ecdb638464152bb4e429933be9fcee4f11"
-DELIVERY_RELATIVE = "docs/evidence/PUJIANG_V54_CONTRACT_SOURCE_20261010.json"
+DELIVERY_REVISION = "9e7f83388d72a37767fd9f24636219093ecbe662"
+DELIVERY_SHA256 = "9e64b0d19f84f9c4285fbdd9da12e2b6608ed02a8e9982bae9ec5c4f4ede538c"
+DELIVERY_RELATIVE = "docs/evidence/PUJIANG_V55_CONTRACT_SOURCE_20261012.json"
 DEFAULT_DELIVERY = ROOT / DELIVERY_RELATIVE
 
 
@@ -114,7 +114,15 @@ def delivery_projection(path: Path) -> dict[str, Any]:
             item["id"] for item in contract["optional_deliveries"]
         ],
         "source_fidelity": contract["source_fidelity"]["status"],
+        "canonical_final_identity": {
+            "status": contract["source_fidelity"]["canonical_final_identity_status"],
+            "sha256": contract["source_fidelity"]["canonical_final_sha256"],
+            "size_bytes": contract["source_fidelity"]["canonical_final_size_bytes"],
+            "page_count": contract["source_fidelity"]["canonical_final_page_count"],
+            "verified_locally": False,
+        },
         "canonical_final_document_verified": False,
+        "b0_receipt_gate": contract["b0_receipt_gate"],
         "aqkv_formal_inclusion_status": "unresolved-kv-precision-scope-and-b1-manifest",
         "optional_measurements_enqueued": 0,
         "execution_authorized": False,
@@ -132,7 +140,8 @@ def validate_matrix(
     _require(
         json.dumps(record.get("delivery_control"), sort_keys=True, allow_nan=False)
         == json.dumps(delivery, sort_keys=True, allow_nan=False),
-        "current delivery control drifted; historical C8 plans cannot authorize V5.4",
+        "current delivery control drifted; "
+        "historical V5.4/C8 plans cannot authorize V5.5",
     )
     _require(
         record.get("review_status") == "prepared-unreviewed",

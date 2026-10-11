@@ -1,14 +1,14 @@
 {
   "schema_version": "adaptive-quantized-kv-pujiang-readiness/v1",
   "record_kind": "planning-only",
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-12",
   "review_status": "prepared-unreviewed",
   "module_owner": "XilingGao",
   "delivery_control": {
-    "test_plan_version": "V5.4",
-    "source_revision": "b32fcbdaf8d3237936b35f9f4ba441bf2d64b361",
-    "snapshot_path": "docs/evidence/PUJIANG_V54_CONTRACT_SOURCE_20261010.json",
-    "snapshot_sha256": "0e4e14a2ad0b6a2fe351b817c03519ecdb638464152bb4e429933be9fcee4f11",
+    "test_plan_version": "V5.5",
+    "source_revision": "9e7f83388d72a37767fd9f24636219093ecbe662",
+    "snapshot_path": "docs/evidence/PUJIANG_V55_CONTRACT_SOURCE_20261012.json",
+    "snapshot_sha256": "9e64b0d19f84f9c4285fbdd9da12e2b6608ed02a8e9982bae9ec5c4f4ede538c",
     "mandatory_model": "Qwen/Qwen3.5-35B-A3B",
     "hardware": "Ascend 910B2",
     "chip_count": 2,
@@ -18,7 +18,40 @@
     "baseline_roles": ["B0", "B1"],
     "inactive_optional_deliveries": ["E1", "E2-G", "E2-D"],
     "source_fidelity": "semantic-mirror",
+    "canonical_final_identity": {
+      "status": "declared-external-identity",
+      "sha256": "bc61b65162952c28cde066ee3829aa58f15bf9ed0843d485e8b1a832410489d2",
+      "size_bytes": 637379,
+      "page_count": 83,
+      "verified_locally": false
+    },
     "canonical_final_document_verified": false,
+    "b0_receipt_gate": {
+      "name": "35B B0 result configuration and provenance receipt",
+      "owner": "release-and-evaluation-engineering",
+      "owner_zh": "课题组（发布与评测工程）",
+      "producer": "release-and-evaluation-engineering-process",
+      "required_materials": [
+        "signed_release_manifest",
+        "b0_oci_repo_digest",
+        "b1_oci_repo_digest",
+        "complete_server_argv",
+        "complete_client_contract",
+        "effective_runtime_receipt",
+        "startup_receipt",
+        "model_manifest",
+        "tokenizer_manifest",
+        "dataset_identity",
+        "arrival_sequence",
+        "result_table",
+        "raw_requests"
+      ],
+      "value_source": "actual-release-artifacts-and-actual-runtime",
+      "prefill_actual_values": false,
+      "infer_actual_values": false,
+      "action_zh": "按表附-1至表附-9生成并冻结签名release manifest、两侧OCI RepoDigest、完整server argv/client contract和effective/startup receipt；与模型、tokenizer、数据、到达序列、结果表及原始请求建立校验绑定。",
+      "release_criterion_zh": "发布工件与实际运行生成的材料全部纳入同一不可变manifest并验签通过；字段可生成唯一命令且与生效值一致，方可纳入正式B0。"
+    },
     "aqkv_formal_inclusion_status": "unresolved-kv-precision-scope-and-b1-manifest",
     "optional_measurements_enqueued": 0,
     "execution_authorized": false
@@ -31,12 +64,14 @@
     "snapshot_sha256": "de1347eb1557f7e82ea3314c118ee090df1d4a87dd18e474c801b4be3a8185a4",
     "shared_implementation_revision": "8ed7ec9a16075c5bce5644a68a712139a6e5d403",
     "program_snapshot_unchanged_at_shared_revision": true,
-    "latest_observed_benchmark_revision": "b32fcbdaf8d3237936b35f9f4ba441bf2d64b361",
-    "latest_program_sha256": "4d9d73fa55c6e15db036fd5f65588f2be476642816db4a9651cfad9e5b2b53ca",
-    "latest_program_diff_scope": "V5.4 test-plan added; three MMLU external-handoff paths normalized; original dataset counts/identities/blockers preserved",
+    "latest_observed_benchmark_revision": "9e7f83388d72a37767fd9f24636219093ecbe662",
+    "latest_program_sha256": "431290969ca2ac77ece4bde4d3e307c05c79a31102b6ee1cec5416fd6aa5fcb0",
+    "latest_program_diff_scope": "V5.5 replaces V5.4 execution authority and declares B0 release/evaluation ownership; frozen asset-ledger snapshot and shared implementation pin are preserved",
     "module_issue": "https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/10",
     "canonical_issue": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254",
     "host_main_revision": "f939ad767b60d60253c3e20c7522defe69e4ca78",
+    "latest_observed_host_main_revision": "82f586f8dcb5f92f8f3d55727bc05b3e2887606d",
+    "host_main_revision_scope": "historical 2026-10-10 test reconciliation; latest observed main is not accepted runtime identity",
     "host_provider_candidate_revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
     "host_provider_candidate_state": "open-draft",
     "host_ci_candidate_revision": "3fb17f2a9eb140cd785d390645a9c743344f9d29",
@@ -61,11 +96,18 @@
   },
   "shared_blockers": [
     {
-      "id": "v54-aqkv-inclusion",
+      "id": "v55-aqkv-inclusion",
       "owner": null,
       "scope": "formal-delivery-contract",
-      "required_input": "Confirm whether V5.4 BF16 allows this B1 engine's INT8 KV cache and approve its exact signed manifest, model/runtime identity and OCI RepoDigest. No C8 formal target or optional E1/E2 queue is inferred from historical research plans.",
-      "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/b32fcbdaf8d3237936b35f9f4ba441bf2d64b361/docs/ACCEPTANCE_V5_4.md"
+      "required_input": "Confirm whether V5.5 BF16 allows this B1 engine's INT8 KV cache and its exact signed B1 inclusion. B0 receipt ownership is known, but it does not decide AQKV admission. No C8 formal target or optional E1/E2 queue is inferred from historical research plans.",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/9e7f83388d72a37767fd9f24636219093ecbe662/docs/ACCEPTANCE_V5_5.md"
+    },
+    {
+      "id": "v55-b0-release-receipt",
+      "owner": "release-and-evaluation-engineering",
+      "scope": "formal-delivery-identity",
+      "required_input": "Release/evaluation engineering must produce all 13 actual-artifact/actual-runtime materials in the pinned V5.5 b0_receipt_gate, bind them in an immutable verified manifest, verify its signature, and reconcile unique commands with effective values. The named role is not an assigned individual or a delivered receipt.",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/9e7f83388d72a37767fd9f24636219093ecbe662/src/vllm_hust_benchmark/data/acceptance_v5_5.json"
     },
     {
       "id": "host-acceptance",

@@ -51,6 +51,10 @@ Extension Manager 与 NPU serving 回执、回滚和退出清理证据，并为�
   总账为 [benchmark Issue #254](https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254)。
   已准备但尚未审阅的适用性矩阵与执行缺口见
   [`docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md`](docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md)。
+  当前 authority 是 [V5.5 控制](docs/PUJIANG_V55_ALIGNMENT_20261012.md)，真实发布/
+  运行身份由发布与评测工程生产，不凭本地 fixture 推断。
+  [目标路径核验设计](docs/PUJIANG_PATH_VERIFICATION_PLAN_20261012.md) 已准备，
+  不是已接纳的 observer API 或真实路径回执。
   任务质量是主指标，服务吞吐与延迟仅为辅助。
   固定共享工具复用审查与 MMLU 已存输出的离线评分接口见
   [`docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md`](docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md)。

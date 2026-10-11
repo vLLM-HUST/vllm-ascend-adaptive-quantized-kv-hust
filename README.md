@@ -65,6 +65,10 @@ with its fixed `intellistream/llm-serving-workloads` gitlink.
   [benchmark ledger #254](https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254).
   The prepared, unreviewed applicability matrix and execution blockers are in
   [`docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md`](docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md).
+  The active [V5.5 control](docs/PUJIANG_V55_ALIGNMENT_20261012.md) keeps actual
+  release/runtime identities with release and evaluation engineering, not inferred
+  from local fixtures. The [target-path verification plan](docs/PUJIANG_PATH_VERIFICATION_PLAN_20261012.md)
+  is prepared, not a reviewed observer API or a runtime receipt.
   Task quality is primary; serving telemetry is supplementary.
   The pinned shared-tool review and MMLU stored-output adapter are documented in
   [`docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md`](docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md).

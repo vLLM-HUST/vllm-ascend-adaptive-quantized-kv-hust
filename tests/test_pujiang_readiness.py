@@ -159,6 +159,7 @@ def test_snapshot_tampering_fails_before_semantic_validation(tmp_path):
     ("field", "value"),
     [
         ("test_plan_version", "V4.6"),
+        ("test_plan_version", "V5.4"),
         ("source_revision", "main"),
         ("snapshot_sha256", "0" * 64),
         ("precision", "C8"),
@@ -193,11 +194,82 @@ def test_delivery_projection_keeps_implementation_and_authority_separate():
     report = validate_files(DEFAULT_MATRIX, DEFAULT_PROGRAM)
     assert report["shared_implementation_revision"].startswith("8ed7ec9")
     delivery = report["current_delivery_contract"]
-    assert delivery["source_revision"].startswith("b32fcbd")
+    assert delivery["test_plan_version"] == "V5.5"
+    assert delivery["source_revision"].startswith("9e7f833")
     assert delivery["precision"] == "BF16"
     assert delivery["optional_measurements_enqueued"] == 0
     assert delivery["execution_authorized"] is False
     assert report["canonical_snapshot_scope"].startswith("historical-")
+
+
+def test_v54_snapshot_remains_historical_not_current_authority():
+    old = ROOT / "docs/evidence/PUJIANG_V54_CONTRACT_SOURCE_20261010.json"
+    assert load_json(old)["test_plan_version"] == "V5.4"
+    with pytest.raises(ValueError, match="delivery contract checksum mismatch"):
+        validate_files(DEFAULT_MATRIX, DEFAULT_PROGRAM, old)
+
+
+def test_v55_declared_canonical_identity_is_not_verified_original():
+    delivery = validate_files(DEFAULT_MATRIX, DEFAULT_PROGRAM)[
+        "current_delivery_contract"
+    ]
+    identity = delivery["canonical_final_identity"]
+    assert identity["status"] == "declared-external-identity"
+    assert identity["size_bytes"] == 637379
+    assert identity["page_count"] == 83
+    assert identity["verified_locally"] is False
+    assert delivery["canonical_final_document_verified"] is False
+    assert load_json(DEFAULT_DELIVERY)["source_sha256"] != identity["sha256"]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("owner", "XilingGao"),
+        ("producer", "plugin-fixture-generator"),
+        ("value_source", "inferred-from-ci"),
+        ("prefill_actual_values", True),
+        ("prefill_actual_values", 0),
+        ("infer_actual_values", True),
+        ("required_materials", []),
+    ],
+)
+def test_v55_receipt_role_and_actual_value_rules_cannot_drift(
+    matrix, program, field, value
+):
+    matrix["delivery_control"]["b0_receipt_gate"][field] = value
+    with pytest.raises(ValueError, match="current delivery control drifted"):
+        validate_matrix(matrix, program)
+
+
+@pytest.mark.parametrize("index", range(13))
+def test_v55_each_b0_material_is_required(matrix, program, index):
+    matrix["delivery_control"]["b0_receipt_gate"]["required_materials"].pop(index)
+    with pytest.raises(ValueError, match="current delivery control drifted"):
+        validate_matrix(matrix, program)
+
+
+def test_v55_both_oci_digests_are_separate_requirements():
+    gate = validate_files(DEFAULT_MATRIX, DEFAULT_PROGRAM)["current_delivery_contract"][
+        "b0_receipt_gate"
+    ]
+    assert gate["owner"] == "release-and-evaluation-engineering"
+    assert len(gate["required_materials"]) == 13
+    assert "b0_oci_repo_digest" in gate["required_materials"]
+    assert "b1_oci_repo_digest" in gate["required_materials"]
+    assert "startup_receipt" in gate["required_materials"]
+    assert gate["prefill_actual_values"] is False
+    assert gate["infer_actual_values"] is False
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("sha256", "0" * 64), ("size_bytes", 571121), ("verified_locally", True)],
+)
+def test_mirror_and_original_cannot_be_conflated(matrix, program, field, value):
+    matrix["delivery_control"]["canonical_final_identity"][field] = value
+    with pytest.raises(ValueError, match="current delivery control drifted"):
+        validate_matrix(matrix, program)
 
 
 @pytest.mark.parametrize("text", ['{"id": 1, "id": 2}', '{"value": NaN}'])

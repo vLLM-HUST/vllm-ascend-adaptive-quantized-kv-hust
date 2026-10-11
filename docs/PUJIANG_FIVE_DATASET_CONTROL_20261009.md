@@ -1,8 +1,26 @@
 # 浦江五数据集：适用性、阻塞与施工控制
 
-更新：2026-10-11。维护者：`XilingGao`。本记录已准备，尚未得到负责人审阅。
+更新：2026-10-12。维护者：`XilingGao`。本记录已准备，尚未得到负责人审阅。
 
-## 0. 最新控制覆盖：V5.4
+## 0. 最新控制覆盖：V5.5
+
+benchmark PR #275 已合并到 `9e7f83388d72a37767fd9f24636219093ecbe662`，
+当前执行 authority 是 [V5.5 对齐控制](PUJIANG_V55_ALIGNMENT_20261012.md)。正式
+35B/TP2/BF16、B0/B1、五数据集及 E1/E2 不启用保持不变；新增明确 B0 回执归属
+发布与评测工程，13 项实际工件/运行材料须同 manifest 绑定并验签，禁止推填。
+校验器已切换为原字节 V5.5 声明，拒绝 V5.4 作为当前控制输入；旧快照原样保留。
+INT8 KV/B1 正式准入仍未决；身份生产者已知不等于材料已交付或 AQKV 已接纳。
+
+Host main 已更新为 `82f586f8dcb5f92f8f3d55727bc05b3e2887606d`。八个目标 C8/graph
+函数 AST 未变，七组提取源码/非数值 stub 对照完成；[目标路径核验设计](PUJIANG_PATH_VERIFICATION_PLAN_20261012.md)
+已准备，真实回执仍为空。新 Host 依赖与本地 tokenizer 环境分开管理，不自行重置 pin。
+
+以下各日期章节保留验证当时的状态。10 月 11 日增量已公开于
+[Draft PR #12](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/pull/12)；
+四项成功 CI 对应旧 head `65395c0`，不是本次 V5.5 增量通过。最新验证/发布状态按
+确切 head 记录，不能把下面历史“未提交”或旧测试数量当实时状态。
+
+### 0.1 历史 V5.4 同步记录
 
 本轮再次同步发现 benchmark `b32fcbdaf8d3237936b35f9f4ba441bf2d64b361` 已发布
 V5.4：强制 Qwen3.5-35B-A3B / 2 张 910B2 / TP=2 / BF16，仅 B0/B1，
