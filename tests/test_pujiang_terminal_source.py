@@ -3,6 +3,7 @@ import copy
 import gzip
 import json
 import os
+import shutil
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -269,9 +270,11 @@ def test_cli_refuses_to_overwrite_prior_receipt(tmp_path, monkeypatch):
             published_root=tmp_path,
             snapshot=tmp_path,
             output=target,
+            staged_tasks=None,
+            candidate_inventory=None,
         ),
     )
-    monkeypatch.setattr(m, "audit", lambda *args: {"fixture": True})
+    monkeypatch.setattr(m, "audit", lambda *args, **kwargs: {"fixture": True})
     with pytest.raises(FileExistsError):
         m.main()
     assert target.read_bytes() == b"keep original receipt"
@@ -334,3 +337,320 @@ def test_real_terminal_source_opt_in():
     assert all(value is False for value in report["claim_boundary"].values())
     assert len(report["task_bindings"]) == 89
     assert "task.toml" not in json.dumps(report["task_bindings"])
+
+
+def stage_rows(snapshot, staged, entries, rows, plan):
+    import tomllib
+
+    inventory = []
+    for row in rows:
+        identity = row["task_id"]
+        shutil.copytree(snapshot / "tasks" / identity, staged / identity)
+        path = staged / identity / "task.toml"
+        before = path.read_bytes()
+        policy = tomllib.loads(before.decode())
+        pinned = (
+            row["image"].rsplit(":", 1)[0] + "@" + row["image_audit"]["manifest_digest"]
+        )
+        path.write_bytes(
+            plan.pin_task_image(before.decode(), row["image"], pinned).encode()
+        )
+        files, modes = {}, {}
+        for name in row["files"]:
+            mode = entries["tasks/" + identity + "/" + name]["mode"]
+            path = staged / identity / name
+            path.chmod(int(mode, 8) & 0o777)
+            raw = path.read_bytes()
+            modes[name] = mode
+            files[name] = {
+                "bytes": len(raw),
+                "sha256": m.sha(raw),
+                "git_blob_sha": m.git_object("blob", raw),
+            }
+        inventory.append(
+            {
+                "task_id": identity,
+                "pinned_image": pinned,
+                "source_row_sha256": m.sha(m.encoded(row)),
+                "staged_files_sha256": m.sha(m.encoded(files)),
+                "file_modes_sha256": m.sha(m.encoded(modes)),
+                "task_policy_sha256": m.sha(
+                    m.encoded(
+                        {
+                            key: policy[key]
+                            for key in ("environment", "agent", "verifier")
+                        }
+                    )
+                ),
+            }
+        )
+    return inventory
+
+
+@pytest.fixture
+def staged_task(task):
+    snapshot, entries, files, rows, receipts, plan = task[:6]
+    staged = snapshot / "candidate"
+    inventory = stage_rows(snapshot, staged, entries, rows, plan)
+    return snapshot, staged, entries, rows, inventory, plan
+
+
+def test_staged_assets_bind_actual_bytes_permissions_and_pin(staged_task):
+    report = m.audit_staged_tasks(*staged_task)
+    assert report["candidate_task_count"] == 1
+    assert report["staged_files_verified"] == 5
+    assert report["task_assets_verified"] and report["local_staged_modes_verified"]
+    assert report["staged_task_bindings"] == staged_task[4]
+    assert (
+        b"@sha256"
+        not in (staged_task[0] / "tasks/source-fixture/task.toml").read_bytes()
+    )
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "unknown",
+        "traversal",
+        "duplicate",
+        "empty",
+        "non-object",
+        "non-list",
+        "missing-file",
+        "extra-file",
+        "extra-dir",
+        "missing-task",
+        "extra-task",
+        "symlink-file",
+        "symlink-dir",
+        "symlink-root",
+        "changed-instruction",
+        "changed-test",
+        "changed-solution",
+        "unpinned",
+        "changed-pin",
+        "changed-policy",
+        "chmod",
+        "lost-executable",
+        "setuid",
+        "false-source-row",
+        "false-files",
+        "false-modes",
+        "false-policy",
+        "false-image",
+        "size-cap",
+    ],
+)
+def test_staged_asset_tampering_fails_even_if_candidate_digest_is_updated(
+    staged_task, mutation, monkeypatch
+):
+    snapshot, staged, entries, rows, inventory, plan = staged_task
+    task = staged / "source-fixture"
+    if mutation in ("unknown", "traversal"):
+        inventory[0]["task_id"] = (
+            "not-in-source" if mutation == "unknown" else "../escape"
+        )
+    elif mutation == "duplicate":
+        inventory.append(copy.deepcopy(inventory[0]))
+    elif mutation == "empty":
+        inventory.clear()
+    elif mutation == "non-object":
+        inventory[0] = []
+    elif mutation == "non-list":
+        inventory = {}
+    elif mutation == "missing-file":
+        (task / "instruction.md").unlink()
+    elif mutation == "extra-file":
+        (task / "added.txt").write_bytes(b"extra")
+    elif mutation in ("extra-dir", "extra-task"):
+        (task / "empty" if mutation == "extra-dir" else staged / "extra-task").mkdir()
+    elif mutation == "missing-task":
+        task.rename(staged.parent / "removed")
+    elif mutation == "symlink-file":
+        path = task / "instruction.md"
+        path.unlink()
+        path.symlink_to(snapshot / "tasks/source-fixture/instruction.md")
+    elif mutation == "symlink-dir":
+        (task / "extra").symlink_to(task / "tests", target_is_directory=True)
+    elif mutation == "symlink-root":
+        link = staged.parent / "link"
+        link.symlink_to(staged, target_is_directory=True)
+        staged = link
+    elif mutation in ("changed-instruction", "changed-test", "changed-solution"):
+        name = {
+            "changed-instruction": "instruction.md",
+            "changed-test": "tests/test.sh",
+            "changed-solution": "solution/solve.sh",
+        }[mutation]
+        (task / name).write_bytes(b"replaced content")
+    elif mutation in ("unpinned", "changed-pin", "changed-policy"):
+        path = task / "task.toml"
+        raw = path.read_bytes()
+        path.write_bytes(
+            (snapshot / "tasks/source-fixture/task.toml").read_bytes()
+            if mutation == "unpinned"
+            else raw.replace(b"cpus = 1", b"cpus = 4")
+            if mutation == "changed-policy"
+            else raw.replace(b"sha256:" + b"b" * 64, b"sha256:" + b"f" * 64)
+        )
+    elif mutation in ("chmod", "lost-executable", "setuid"):
+        path = task / (
+            "tests/test.sh" if mutation == "lost-executable" else "instruction.md"
+        )
+        path.chmod(
+            {"chmod": 0o666, "lost-executable": 0o644, "setuid": 0o4644}[mutation]
+        )
+    elif mutation.startswith("false-"):
+        key = {
+            "false-source-row": "source_row_sha256",
+            "false-files": "staged_files_sha256",
+            "false-modes": "file_modes_sha256",
+            "false-policy": "task_policy_sha256",
+            "false-image": "pinned_image",
+        }[mutation]
+        inventory[0][key] = "f" * 64
+    else:
+        monkeypatch.setattr(m, "SOURCE_BYTE_CAP", 4)
+    # Rehash tampered files to ensure self-consistent declarations cannot bypass
+    # comparison with the independently fixed original bytes and permissions.
+    if mutation.startswith("changed-") or mutation in (
+        "unpinned",
+        "chmod",
+        "lost-executable",
+        "setuid",
+    ):
+        files, modes = {}, {}
+        for name in rows[0]["files"]:
+            path = task / name
+            raw = path.read_bytes()
+            files[name] = {
+                "bytes": len(raw),
+                "sha256": m.sha(raw),
+                "git_blob_sha": m.git_object("blob", raw),
+            }
+            modes[name] = "100755" if path.stat().st_mode & 0o111 else "100644"
+        inventory[0]["staged_files_sha256"] = m.sha(m.encoded(files))
+        inventory[0]["file_modes_sha256"] = m.sha(m.encoded(modes))
+    with pytest.raises(ValueError):
+        m.audit_staged_tasks(snapshot, staged, entries, rows, inventory, plan)
+
+
+@pytest.mark.parametrize("staged,inventory", [(Path("unused"), None), (None, [])])
+def test_incomplete_asset_binding_rejected_before_source_reads(
+    tmp_path, staged, inventory
+):
+    with pytest.raises(ValueError, match="must be supplied together"):
+        m.audit(
+            tmp_path,
+            tmp_path,
+            tmp_path,
+            staged_tasks=staged,
+            candidate_inventory=inventory,
+        )
+
+
+def test_real_all_terminal_task_copies_opt_in(tmp_path):
+    from scripts import validate_pujiang_terminal_plan as candidate
+
+    root = os.environ.get("AQKV_TEST_TERMINAL_SOURCE_ROOT")
+    checkout = os.environ.get("AQKV_TEST_BENCHMARK_CHECKOUT")
+    if not root or not checkout:
+        pytest.skip("requires explicitly supplied pinned Terminal source and benchmark")
+    pytest.importorskip("tomllib")
+    root, checkout = Path(root), Path(checkout)
+    snapshot, published = root / "terminal-assets/snapshot", root / "published"
+    plan = m.load_plan(checkout)
+    reports = m.verify_report(checkout, published)
+    entries = m.verify_git_tree(
+        m.parse_json(m.unpack(reports["tree.json.gz"])),
+        m.TREE_ROOT,
+        query_commit=plan.source_audit.REVISION,
+    )
+    rows = []
+    for name in sorted(name for name in reports if name.startswith("inventory-")):
+        rows.extend(m.parse_json(m.unpack(reports[name])))
+    staged = tmp_path / "tasks"
+    inventory = stage_rows(snapshot, staged, entries, rows, plan)
+    report = m.audit(
+        checkout,
+        published,
+        snapshot,
+        staged_tasks=staged,
+        candidate_inventory=inventory,
+    )
+    assert report["status"] == "terminal_staged_assets_bound_execution_blocked"
+    assert (
+        report["candidate_task_count"] == 89 and report["staged_files_verified"] == 1035
+    )
+    assert report["task_assets_verified"] and report["local_staged_modes_verified"]
+    assert (
+        not report["execution_authorized"] and not report["ready_for_scored_execution"]
+    )
+    assert (
+        not report["harbor_schema_validated_locally"]
+        and not report["image_layers_pulled"]
+    )
+    assert report["tasks_executed"] == report["model_requests_sent"] == 0
+    assert report["task_quality"] is None
+    assert all(value is False for value in report["claim_boundary"].values())
+    endpoints = {
+        "B0": "https://b0.example.invalid/v1",
+        "B1": "https://b1.example.invalid/v1",
+    }
+    paths = {"inventory": tmp_path / "inventory.json"}
+    paths["inventory"].write_bytes(m.encoded(inventory))
+    for arm, endpoint in endpoints.items():
+        job = plan.job_config(
+            arm.lower(), [row["task_id"] for row in inventory], endpoint
+        )
+        job["job_name"] = "aqkv-terminal-" + arm.lower()
+        job["agents"][0]["model_name"] = "openai/synthetic-service-intent"
+        paths[arm] = tmp_path / (arm + ".json")
+        paths[arm].write_bytes(m.encoded(job))
+    envelope = {
+        "schema_version": candidate.SCHEMA,
+        "evidence_kind": "development-fixture",
+        "scope": "supplied-task-plan-only",
+        "dataset": "terminal-bench-2.1",
+        "dataset_revision": candidate.DATASET_REVISION,
+        "benchmark_revision": candidate.BENCHMARK_REVISION,
+        "source_sha256": {
+            key: value[1] for key, value in candidate.SOURCE_FILES.items()
+        },
+        "harbor_version": plan.HARBOR_VERSION,
+        "harbor_revision": plan.HARBOR_REVISION,
+        "retry_policy": candidate.RETRY_POLICY.copy(),
+        "task_count": len(inventory),
+        "serving_intent": {
+            "model_name": "openai/synthetic-service-intent",
+            "api_base": endpoints,
+            "aqkv_enabled": {"B0": False, "B1": True},
+        },
+        "runtime_receipts": {"B0": None, "B1": None},
+        "files_sha256": {key: m.sha(path.read_bytes()) for key, path in paths.items()},
+    }
+    envelope_path = tmp_path / "envelope.json"
+    envelope_path.write_bytes(m.encoded(envelope))
+    pair = candidate.validate_files(
+        envelope_path,
+        paths["inventory"],
+        paths["B0"],
+        paths["B1"],
+        checkout,
+        published_root=published,
+        snapshot=snapshot,
+        staged_tasks=staged,
+    )
+    assert pair["status"] == "candidate_plan_assets_bound_execution_blocked"
+    assert pair["source_asset_binding"]["staged_files_verified"] == 1035
+    assert pair["source_membership_verified"] and pair["task_assets_verified"]
+    assert not pair["actual_backend_connection_verified"]
+    assert not pair["actual_service_switches_verified"]
+    assert (
+        not pair["harbor_schema_validated_locally"]
+        and not pair["ready_for_scored_execution"]
+    )
+    assert (
+        pair["task_quality"] is None
+        and pair["model_calls"] == pair["tasks_executed"] == 0
+    )

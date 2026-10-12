@@ -198,7 +198,17 @@ def validate_files(
     b0_path: Path,
     b1_path: Path,
     benchmark_checkout: Path,
+    *,
+    published_root: Path | None = None,
+    snapshot: Path | None = None,
+    staged_tasks: Path | None = None,
 ) -> dict[str, Any]:
+    assets = (published_root, snapshot, staged_tasks)
+    require(
+        all(path is None for path in assets)
+        or all(path is not None for path in assets),
+        "published root, snapshot and staged tasks must be supplied together",
+    )
     envelope_raw = envelope_path.read_bytes()
     record = obj(parse_json(envelope_raw), "envelope")
     checksums = obj(record.get("files_sha256"), "files_sha256")
@@ -220,6 +230,52 @@ def validate_files(
     )
     report["envelope_sha256"] = sha(envelope_raw)
     report["artifact_sha256"] = dict(checksums)
+    if published_root is not None and snapshot is not None and staged_tasks is not None:
+        try:
+            from scripts.audit_pujiang_terminal_source import audit
+        except ModuleNotFoundError:
+            from audit_pujiang_terminal_source import audit
+
+        source = audit(
+            benchmark_checkout,
+            published_root,
+            snapshot,
+            staged_tasks=staged_tasks,
+            candidate_inventory=parsed["inventory"],
+        )
+        report["status"] = "candidate_plan_assets_bound_execution_blocked"
+        report["scope"] = (
+            "supplied source members and local files; no sandbox or service validation"
+        )
+        report["source_membership_verified"] = True
+        report["task_assets_verified"] = True
+        report["local_staged_modes_verified"] = True
+        report["source_asset_binding"] = {
+            key: source[key]
+            for key in (
+                "benchmark_revision",
+                "source_revision",
+                "source_tree_root",
+                "source_tree_sha256",
+                "report_files_sha256",
+                "candidate_task_count",
+                "staged_files_verified",
+                "staged_bytes_verified",
+                "staged_task_bindings_sha256",
+                "registry_metadata_bytes_reverified",
+                "image_layers_pulled",
+                "rights_review_complete",
+            )
+        }
+        report["source_asset_report_sha256"] = sha(canonical(source))
+        report["pending_gates"] = [
+            gate.replace(
+                "verified task files, executable modes, task policies "
+                "and pinned image layers",
+                "digest-pinned registry metadata and image layers",
+            )
+            for gate in PENDING_GATES
+        ]
     return report
 
 
@@ -227,13 +283,23 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("envelope", "inventory", "b0", "b1", "benchmark-checkout", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    for name in ("published-root", "snapshot", "staged-tasks"):
+        parser.add_argument("--" + name, type=Path)
     args = parser.parse_args()
     try:
         report = validate_files(
-            args.envelope, args.inventory, args.b0, args.b1, args.benchmark_checkout
+            args.envelope,
+            args.inventory,
+            args.b0,
+            args.b1,
+            args.benchmark_checkout,
+            published_root=args.published_root,
+            snapshot=args.snapshot,
+            staged_tasks=args.staged_tasks,
         )
         with args.output.open("x", encoding="utf-8") as output:
             output.write(json.dumps(report, indent=2) + "\n")
+        args.output.chmod(0o600)
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         print(json.dumps({"status": "error", "message": str(error)}))
         return 1

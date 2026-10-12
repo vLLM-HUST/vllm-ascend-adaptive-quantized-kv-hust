@@ -8,6 +8,7 @@ import gzip
 import io
 import json
 import re
+import stat
 import subprocess
 from collections import Counter
 from pathlib import Path
@@ -278,7 +279,132 @@ def audit_tasks(
     }
 
 
-def audit(checkout: Path, published_root: Path, snapshot: Path) -> dict:
+def audit_staged_tasks(
+    snapshot: Path,
+    staged: Path,
+    entries: dict,
+    source_rows: list,
+    inventory: Any,
+    plan: Any,
+) -> dict:
+    """Compare supplied task copies to verified source; only image pin may change."""
+    import tomllib
+
+    require(
+        isinstance(inventory, list) and 0 < len(inventory) <= len(source_rows),
+        "invalid staged candidate inventory",
+    )
+    sources = {row["task_id"]: row for row in source_rows}
+    ids = []
+    for row in inventory:
+        require(isinstance(row, dict), "candidate task must be an object")
+        identity = row.get("task_id")
+        require(
+            isinstance(identity, str)
+            and re.fullmatch(r"[a-z0-9][a-z0-9.-]*", identity) is not None
+            and identity in sources
+            and identity not in ids,
+            "candidate task is not a unique source member",
+        )
+        ids.append(identity)
+    preflight_snapshot(staged)
+    expected_files = {
+        identity + "/" + name for identity in ids for name in sources[identity]["files"]
+    }
+    expected_dirs = {
+        str(parent)
+        for name in expected_files
+        for parent in Path(name).parents
+        if str(parent) != "."
+    }
+    actual_files, actual_dirs = set(), set()
+    for path in staged.rglob("*"):
+        name = path.relative_to(staged).as_posix()
+        (actual_dirs if path.is_dir() else actual_files).add(name)
+    require(
+        actual_files == expected_files and actual_dirs == expected_dirs,
+        "staged file or directory membership differs",
+    )
+    verified, byte_count = [], 0
+    for candidate in inventory:
+        identity = candidate["task_id"]
+        row = sources[identity]
+        raw_toml = read_bounded(snapshot / "tasks" / identity / "task.toml")
+        policy = tomllib.loads(raw_toml.decode())
+        pinned = (
+            row["image"].rsplit(":", 1)[0] + "@" + row["image_audit"]["manifest_digest"]
+        )
+        pinned_toml = plan.pin_task_image(
+            raw_toml.decode(), row["image"], pinned
+        ).encode()
+        files, modes = {}, {}
+        for name, original in row["files"].items():
+            path = staged / identity / name
+            raw = read_bounded(path, SOURCE_BYTE_CAP)
+            byte_count += len(raw)
+            require(byte_count <= SOURCE_BYTE_CAP, "staged files exceed byte cap")
+            if name == "task.toml":
+                require(raw == pinned_toml, identity + ": task pin or policy differs")
+            else:
+                require(
+                    len(raw) == original["bytes"]
+                    and sha(raw) == original["sha256"]
+                    and git_object("blob", raw) == original["git_blob_sha"],
+                    identity + ": staged source bytes differ",
+                )
+            mode = entries["tasks/" + identity + "/" + name]["mode"]
+            require(
+                mode in ("100644", "100755")
+                and stat.S_IMODE(path.stat().st_mode) == (int(mode, 8) & 0o777),
+                identity + ": staged file permission differs",
+            )
+            files[name] = {
+                "bytes": len(raw),
+                "sha256": sha(raw),
+                "git_blob_sha": git_object("blob", raw),
+            }
+            modes[name] = mode
+        actual = {
+            "task_id": identity,
+            "pinned_image": pinned,
+            "source_row_sha256": sha(encoded(row)),
+            "staged_files_sha256": sha(encoded(files)),
+            "file_modes_sha256": sha(encoded(modes)),
+            "task_policy_sha256": sha(
+                encoded(
+                    {key: policy[key] for key in ("environment", "agent", "verifier")}
+                )
+            ),
+        }
+        require(
+            all(candidate.get(key) == value for key, value in actual.items()),
+            identity + ": candidate metadata differs from actual assets",
+        )
+        verified.append(actual)
+    return {
+        "candidate_task_count": len(ids),
+        "candidate_scope": "supplied source members only; not an approved task set",
+        "staged_task_bindings": verified,
+        "staged_task_bindings_sha256": sha(encoded(verified)),
+        "staged_files_verified": len(expected_files),
+        "staged_bytes_verified": byte_count,
+        "task_assets_verified": True,
+        "local_staged_modes_verified": True,
+    }
+
+
+def audit(
+    checkout: Path,
+    published_root: Path,
+    snapshot: Path,
+    *,
+    staged_tasks: Path | None = None,
+    candidate_inventory: Any = None,
+) -> dict:
+    require(
+        (staged_tasks is None) == (candidate_inventory is None),
+        "staged tasks and candidate inventory must be supplied together",
+    )
     plan = load_plan(checkout)
     shared = load_verified_module(checkout, SOURCE_FILES, "audit")
     reports = verify_report(checkout, published_root)
@@ -339,7 +465,7 @@ def audit(checkout: Path, published_root: Path, snapshot: Path) -> dict:
         and summary["verified_source_files"] == len(files) == 1101,
         "published source/layer totals differ",
     )
-    return {
+    report = {
         "status": "terminal_source_bound_execution_blocked",
         "benchmark_revision": BENCHMARK_REVISION,
         "source_revision": shared.REVISION,
@@ -355,6 +481,7 @@ def audit(checkout: Path, published_root: Path, snapshot: Path) -> dict:
         "task_source_bytes_verified": True,
         "source_git_modes_verified": True,
         "local_staged_modes_verified": False,
+        "task_assets_verified": False,
         "image_pin_semantics_verified": True,
         "registry_metadata_bytes_reverified": False,
         "image_layers_pulled": False,
@@ -367,20 +494,49 @@ def audit(checkout: Path, published_root: Path, snapshot: Path) -> dict:
         "task_quality": None,
         "claim_boundary": CLAIM_BOUNDARY.copy(),
     }
+    if staged_tasks is not None:
+        report.update(
+            audit_staged_tasks(
+                snapshot, staged_tasks, entries, rows, candidate_inventory, plan
+            )
+        )
+        report["status"] = "terminal_staged_assets_bound_execution_blocked"
+    return report
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("benchmark-checkout", "published-root", "snapshot", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--staged-tasks", type=Path)
+    parser.add_argument("--candidate-inventory", type=Path)
     args = parser.parse_args()
-    result = audit(args.benchmark_checkout, args.published_root, args.snapshot)
+    require(
+        (args.staged_tasks is None) == (args.candidate_inventory is None),
+        "staged tasks and candidate inventory must be supplied together",
+    )
+    inventory = (
+        parse_json(read_bounded(args.candidate_inventory, METADATA_BYTE_CAP))
+        if args.candidate_inventory is not None
+        else None
+    )
+    result = audit(
+        args.benchmark_checkout,
+        args.published_root,
+        args.snapshot,
+        staged_tasks=args.staged_tasks,
+        candidate_inventory=inventory,
+    )
     with args.output.open("xb") as stream:
         stream.write(encoded(result))
     args.output.chmod(0o600)
     print(
         json.dumps(
-            {key: value for key, value in result.items() if key != "task_bindings"},
+            {
+                key: value
+                for key, value in result.items()
+                if key not in ("task_bindings", "staged_task_bindings")
+            },
             indent=2,
         )
     )

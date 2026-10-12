@@ -21,7 +21,8 @@
 4. 逐任务对齐真实 TOML 与公开清单/映射：required assets、环境、agent、verifier、
    资源、超时、MCP 数量、源修订、镜像 tag/digest 和层元数据。
 5. 只在内存预览 tag -> manifest digest，复用上游函数验证其他 TOML 语义不变。
-   不写 staged 任务/job/执行合同；输出绑定摘要，不输出题目、解答或脚本内容。
+   默认不写 staged 任务/job/执行合同；输出绑定摘要，不输出题目、解答或脚本内容。
+   显式 supplied staged 输入的后续比对见第 5 节。
 
 完整源码包曾传输截断，服务端不支持 Range。本轮保留有限重试回执，随后改用
 固定 Git blob 获取源码，不声称完成 archive SHA 或上游 fetch 全流程重跑。
@@ -29,7 +30,7 @@
 
 ## 2. 实际结果与声明边界
 
-本轮实际读取并核验全部 **1101 文件 / 59252655 字节 / 89 任务**；其中任务
+首次来源轮实际读取并核验全部 **1101 文件 / 59252655 字节 / 89 任务**；其中任务
 目录 1035 文件，Git 模式为 1023 个 `100644`、12 个 `100755`。89 个完整 TOML
 政策与 tag -> digest 内存预览均完成对应，未改原始输入、未产生 staged 执行目录。
 
@@ -46,8 +47,9 @@
   声明总和分别比去重字典高 32/93 字节。按上游两种口径保留差异，未重验原 manifest
   的重复 descriptor，不改上游数值，也不把字典合计等同 descriptor 总和。
 - 根 LICENSE 与来源对应，不批准第三方文件、镜像或下载资产的使用权。
-- 独立来源审计不自动升级旧 v1 candidate-plan 的 `source_membership_verified=false`；
-  未来 staged/job 仍须明确绑定实际源文件并核验其权限。
+- 独立来源审计不自动升级旧 v1 candidate-plan 的 `source_membership_verified=false`。
+  显式提供完整 source/staged 输入、重新核验成功的单次回执才可绑定资产，见第 5 节；
+  历史 v1 回执、单纯声明摘要或 separate source report 不能继承此状态。
 - `task_quality=null`，模型/任务执行数为 0；ready/授权、runtime、质量与性能主张
   均为 false。Harbor schema、沙箱/verifier 和真实服务未验证。
 
@@ -87,3 +89,46 @@ Python 3.10 无 `tomllib` 时相关用例明确 skip，不伪装为实际执行�
 
 来源：[固定公共报告](https://github.com/vLLM-HUST/vllm-hust-benchmark/tree/8ed7ec9a16075c5bce5644a68a712139a6e5d403/reports/pyramidkv-terminal-source-audit-20261009)、
 [固定任务仓库](https://github.com/harbor-framework/terminal-bench-2-1/tree/7131e4375048a0e408a8fb404b5f499d726b695b)。
+
+## 5. 后续：真实待运行副本绑定
+
+2026-10-12 后续补齐原 v1 的实际输入比对缺口，不创建新的执行协议，不调用上游
+`prepare` 的 registry 全审计，不以已发布的镜像 metadata 冒充原始 registry 回执。
+同一个 source audit 可显式接收 `--staged-tasks` 和 `--candidate-inventory`；必须同时
+提供，先重验完整固定原始 source 和公开报告，再核对给定任务副本：
+
+- Task IDs 必须是唯一真实 source members；副本目录只允许这些任务的精确文件和
+  目录集合。拒绝缺文件、多文件/空目录/任务、symlink、超量输入。
+- 除 `task.toml` 中一次 tag -> 已核对的 manifest digest 变更外，题目、解答、
+  verifier、Dockerfile 和其他资产全部保留原始字节/Git blob/大小。TOML 必须
+  逐字节等于固定共享 pin 函数输出，不能顺便修改预算、MCP、资源或任务时限。
+- 本地权限严格等于 Git `100644/100755` 的 `0644/0755`；缺执行位、额外写权限、
+  setuid 等均拒绝。这里只读取副本权限，不 chmod 或执行任何脚本。
+- inventory 摘要口径为 `encoded` 的 sorted/indented JSON + newline：source-row
+  是原公开清单行；staged-files 是逐文件 bytes/sha256/git_blob_sha；file-modes
+  是任务相对路径到 Git mode 字符串；task-policy 是原始 environment/agent/verifier。
+  pin 单独绑定 `pinned_image`。自己重算被篡改副本的摘要不能绕过原字节核对。
+
+本轮使用已有下载，只在私有目录创建全部 **89 任务 / 1035 文件** 的副本用于审计，
+原 snapshot 保持 `0600`；无新资产下载、镜像层、服务/job 创建或脚本执行。所有
+源码任务只是 copy-audit inventory，不是经批准的正式执行集。回执包含副本摘要与
+计数，不公开题目/解答/资产。原始来源历史回执不覆盖。
+
+```bash
+python scripts/audit_pujiang_terminal_source.py \
+  --benchmark-checkout /path/to/pinned/benchmark \
+  --published-root /path/to/pinned-public-report-tree \
+  --snapshot /path/to/original-terminal-source-files \
+  --staged-tasks /path/to/private-candidate/tasks \
+  --candidate-inventory /path/to/private-candidate/inventory.json \
+  --output /path/to/new-private-staged-linkage.json
+```
+
+成功状态 `terminal_staged_assets_bound_execution_blocked`，只提升实际 source-member/
+staged-byte/local-mode 对应。candidate-plan validator 可附加同样的 `--published-root`、
+`--snapshot`、`--staged-tasks` 三项，将同一次计划校验绑定这些实际输入；不提供
+三项时保持旧 v1 的不绑定语义。少任一项、任一文件/摘要不符都失败，不输出成功。
+
+`task_assets_verified=true` **不含** registry layer/Harbor schema/真实 backend/服务
+激活/授权/权利/完整 verifier 与任务质量；这些仍 false/null。正式任务集合及 V5.5
+范围、实际镜像和依赖、连接/认证、Host/profile/correctness 等仍待交付。

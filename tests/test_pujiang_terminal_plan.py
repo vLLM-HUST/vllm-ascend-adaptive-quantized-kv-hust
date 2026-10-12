@@ -316,6 +316,98 @@ def test_invalid_checkout_is_not_an_ambient_plan_dependency(tmp_path):
         m.load_plan(tmp_path)
 
 
+@pytest.mark.parametrize("present", [(True, False, False), (False, True, True)])
+def test_partial_asset_binding_rejected_before_input_reads(tmp_path, present):
+    with pytest.raises(ValueError, match="must be supplied together"):
+        m.validate_files(
+            tmp_path,
+            tmp_path,
+            tmp_path,
+            tmp_path,
+            tmp_path,
+            **{
+                key: tmp_path if supplied else None
+                for key, supplied in zip(
+                    ("published_root", "snapshot", "staged_tasks"), present, strict=True
+                )
+            },
+        )
+
+
+def test_explicit_asset_binding_does_not_promote_services_or_execution(
+    tmp_path, payload, stub_plan, monkeypatch
+):
+    from scripts import audit_pujiang_terminal_source as source
+
+    envelope, paths = write_inputs(tmp_path, payload)
+    monkeypatch.setattr(m, "load_plan", lambda path: stub_plan)
+    calls = []
+
+    def audit(checkout, published, snapshot, **kwargs):
+        calls.append((checkout, published, snapshot, kwargs))
+        return {
+            "benchmark_revision": m.BENCHMARK_REVISION,
+            "source_revision": m.DATASET_REVISION,
+            "source_tree_root": "synthetic tree",
+            "source_tree_sha256": "a" * 64,
+            "report_files_sha256": {},
+            "candidate_task_count": 2,
+            "staged_files_verified": 10,
+            "staged_bytes_verified": 100,
+            "staged_task_bindings_sha256": "b" * 64,
+            "registry_metadata_bytes_reverified": False,
+            "image_layers_pulled": False,
+            "rights_review_complete": False,
+        }
+
+    monkeypatch.setattr(source, "audit", audit)
+    report = m.validate_files(
+        envelope,
+        paths["inventory"],
+        paths["B0"],
+        paths["B1"],
+        tmp_path,
+        published_root=tmp_path / "published",
+        snapshot=tmp_path / "source",
+        staged_tasks=tmp_path / "tasks",
+    )
+    assert len(calls) == 1 and calls[0][3]["candidate_inventory"] == payload[1]
+    assert report["status"] == "candidate_plan_assets_bound_execution_blocked"
+    assert report["source_membership_verified"] and report["task_assets_verified"]
+    assert report["local_staged_modes_verified"]
+    assert not report["actual_backend_connection_verified"]
+    assert not report["actual_service_switches_verified"]
+    assert not report["ready_for_scored_execution"]
+    assert report["tasks_executed"] == report["model_calls"] == 0
+    assert report["task_quality"] is None
+    assert all(value is False for value in report["claim_boundary"].values())
+
+
+def test_asset_audit_failure_propagates_without_success_report(
+    tmp_path, payload, stub_plan, monkeypatch
+):
+    from scripts import audit_pujiang_terminal_source as source
+
+    envelope, paths = write_inputs(tmp_path, payload)
+    monkeypatch.setattr(m, "load_plan", lambda path: stub_plan)
+
+    def fail(*args, **kwargs):
+        raise ValueError("actual asset mismatch")
+
+    monkeypatch.setattr(source, "audit", fail)
+    with pytest.raises(ValueError, match="actual asset mismatch"):
+        m.validate_files(
+            envelope,
+            paths["inventory"],
+            paths["B0"],
+            paths["B1"],
+            tmp_path,
+            published_root=tmp_path,
+            snapshot=tmp_path,
+            staged_tasks=tmp_path,
+        )
+
+
 @pytest.fixture
 def real_plan_checkout():
     value = os.environ.get("AQKV_TEST_BENCHMARK_CHECKOUT")

@@ -183,8 +183,10 @@ README 增加的对应链接也未进入主线：
 - FrontierScience 离线接口按赛道/源行号配对，绑定 judge 请求/原始响应、指令及校准
   文件；未评分/失败/截断保留。fixture 评分与真实 task_quality 分离，不凭结构校验
   宣称实际 judge 语义校准或作答前冻结。
-- Terminal 候选计划已复用固定 job_config，约束任务/预算/重试与计划开关；仍不验证
-  真实任务资产、Harbor schema、服务切换、后端或 verifier。两项细则见
+- Terminal 候选计划已复用固定 job_config，约束任务/预算/重试与计划开关；默认 v1
+  不绑定实际文件。后续显式 source/staged 输入可核验真实 source members、副本
+  字节和 Git 权限；仍不验证 Harbor schema、registry 层、服务切换、后端或 verifier。
+  89 任务源码/副本库存不是正式获准执行集。两项细则见
   [`PUJIANG_FRONTIER_TERMINAL_OFFLINE_20261010.md`](PUJIANG_FRONTIER_TERMINAL_OFFLINE_20261010.md)。
 - 尚未冻结正式任务清单、评分器、许可、镜像或 B0/B1；矩阵未审阅。用户授权后已在
   [Issue #10](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/10#issuecomment-6097948895)

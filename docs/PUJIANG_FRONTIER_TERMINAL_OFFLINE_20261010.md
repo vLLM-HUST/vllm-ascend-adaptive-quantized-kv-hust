@@ -94,6 +94,14 @@ synthetic 样本。正式输入需源题/提示审计、许可、实际 judge �
 工具：[`../scripts/validate_pujiang_terminal_plan.py`](../scripts/validate_pujiang_terminal_plan.py)。
 本轮只调用固定共享 `job_config`，不调用 prepare、audit、validate_harbor 或 task runner。
 
+2026-10-12 后续增加**显式实际资产绑定**，不改变未提供资产输入的旧 v1 语义。
+附加 `--published-root`、`--snapshot`、`--staged-tasks` 必须三项齐全：重验全部固定
+源码、公开报告及给定任务副本，只允许 image pin、保留全部其他字节/政策/Git 权限，
+并将 inventory 摘要与实际文件比对。成功为 `candidate_plan_assets_bound_execution_blocked`；
+只提升 source-membership/task-assets/local-staged-modes。不修改实际服务/Harbor/沙箱/
+权利/执行门禁，不生成正式选题或 model endpoints。使用与摘要口径见
+[Terminal 第 5 节](PUJIANG_TERMINAL_SOURCE_AUDIT_20261012.md)。
+
 - envelope：`schema_version=aqkv-terminal-candidate-envelope/v1`、
   `scope=supplied-task-plan-only`；kind 为 development-fixture 或
   unverified-candidate-plan。Terminal 源 revision 固定为
