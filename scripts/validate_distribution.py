@@ -7,6 +7,7 @@ import argparse
 import configparser
 import hashlib
 import json
+import os
 import posixpath
 import re
 import stat
@@ -169,8 +170,15 @@ def main() -> int:
         parser.error(str(error))
 
     rendered = json.dumps(receipt, indent=2) + "\n"
-    if args.output is not None:
-        args.output.write_text(rendered, encoding="utf-8")
+    try:
+        if args.output is not None:
+            descriptor = os.open(
+                args.output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600
+            )
+            with os.fdopen(descriptor, "w", encoding="utf-8") as output:
+                output.write(rendered)
+    except OSError as error:
+        parser.error(str(error))
     print(rendered, end="")
     return 0
 
