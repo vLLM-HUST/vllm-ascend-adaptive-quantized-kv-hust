@@ -1,0 +1,37 @@
+{
+  "schema_version": "aqkv-mmlu-source-preparation-receipt/v1",
+  "record_kind": "local-source-preparation-not-runtime",
+  "record_date": "2026-10-10",
+  "platform": "macOS arm64",
+  "dataset_revision": "b189ec765aa7ed75c8acfea42df31fdae71f97be",
+  "benchmark_revision": "8ed7ec9a16075c5bce5644a68a712139a6e5d403",
+  "reference_revision": "f418b116db00b065c2aea046518d8fcf74d39872",
+  "source_counts": {"test": 12032, "validation": 70, "subjects": 14},
+  "source_data_bytes": 4187042,
+  "source_data_sha256": {
+    "test": "0e24a191921c2f453518a537a8b2117bd137e7714d4ef1565e9ba06c1ecb9ad8",
+    "validation": "139423c23722e480c807ac4a191409a710cfce4eba744c1d641cf88e730e2078"
+  },
+  "selection_status": "candidate-unreviewed",
+  "selection_rule": "first five ascending immutable test IDs per subject; no length, outcome or activation filter",
+  "task_count": 70,
+  "coverage": "explicit-named-subset",
+  "selection_sha256": "9219408e9503d0c421c0803af171e16441837d00194ff844dbb844222c48acf7",
+  "tasks_sha256": "0aff3eed2e7e4d24777c1902a2673827a766803f2c19de565ddd80b153fb621a",
+  "source_plan_sha256": "ac1d619515c88948b3547bfbe6f735ce3a0bee5a41d3807c5347f128aeb21e84",
+  "producer_source_sha256": "6318642829bf78f450a63c0daff8787c7ec77e2a19eda77dce2b8c62bd1b13b4",
+  "model_requests_sent": 0,
+  "tokenizer_verified": false,
+  "transport_verified": false,
+  "runtime_activation_verified": false,
+  "task_quality": null,
+  "performance": null,
+  "public_submission_status": "local-unsubmitted",
+  "claim_boundary": {
+    "runtime_ready": false,
+    "execution_authorized": false,
+    "task_quality_claim": false,
+    "performance_claim": false,
+    "public_surface_restoration": false
+  }
+}

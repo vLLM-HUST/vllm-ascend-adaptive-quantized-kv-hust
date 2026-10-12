@@ -1,0 +1,179 @@
+{
+  "evidence_kind": "extracted-source-control-flow-with-nonnumeric-stubs",
+  "old_revision": "f939ad767b60d60253c3e20c7522defe69e4ca78",
+  "new_revision": "82f586f8dcb5f92f8f3d55727bc05b3e2887606d",
+  "source_sha256": "d5ba5d0e32be90397f82241977d5fc58a59d1fcc4413273bf2333e731de56352",
+  "method_comparisons": [
+    {
+      "symbol": "AscendC8AttentionBackendImpl.forward",
+      "ast_unchanged": true,
+      "new_start_line": 1406,
+      "new_end_line": 1494,
+      "ast_sha256": "0dc5c295f78b040c6b09e3b8ad9273f07910eb547cfe172c2eebb8a9b942ad08"
+    },
+    {
+      "symbol": "AscendC8AttentionBackendImpl._prepare_c8_scales",
+      "ast_unchanged": true,
+      "new_start_line": 1501,
+      "new_end_line": 1534,
+      "ast_sha256": "21620fbcf63d058cd6718d02dc31ceab3c68f508699f052ccf7a88efcb3110e0"
+    },
+    {
+      "symbol": "AscendC8AttentionBackendImpl._dequant_paged_kv_to_dense",
+      "ast_unchanged": true,
+      "new_start_line": 1536,
+      "new_end_line": 1582,
+      "ast_sha256": "0a9e9f2f083a413ff7e132634f8a54862eec0a3827dc6b4a31a878a7bc797661"
+    },
+    {
+      "symbol": "AscendC8AttentionBackendImpl._quantize_kv_to_int8",
+      "ast_unchanged": true,
+      "new_start_line": 1584,
+      "new_end_line": 1605,
+      "ast_sha256": "7d7f72bd4c4af1960374b4de4d4771ea5675fe347ae5bbf07742baaac4d69995"
+    },
+    {
+      "symbol": "AscendC8AttentionBackendImpl._forward_c8_decode",
+      "ast_unchanged": true,
+      "new_start_line": 1607,
+      "new_end_line": 1643,
+      "ast_sha256": "5c58cc11ac14b4c756c2ff07fc22c9fe27e02e743474a0ccf52b6dec3ae7e37c"
+    },
+    {
+      "symbol": "AscendC8AttentionBackendImpl._forward_c8_chunked_prefill",
+      "ast_unchanged": true,
+      "new_start_line": 1645,
+      "new_end_line": 1744,
+      "ast_sha256": "2de462b1e743b4d5501bd43219f17a0a74e3f3e98f66862178e38f1e67978fcb"
+    },
+    {
+      "symbol": "AscendC8AttentionBackendImpl._forward_c8_fused_infer_attention",
+      "ast_unchanged": true,
+      "new_start_line": 1746,
+      "new_end_line": 1807,
+      "ast_sha256": "adffad87c7428c770789b23a341f12aa44fe9889c885fe2962b8dce4ceb4c15e"
+    },
+    {
+      "symbol": "AscendAttentionBackendImpl.full_graph_fia",
+      "ast_unchanged": true,
+      "new_start_line": 686,
+      "new_end_line": 785,
+      "ast_sha256": "dd2930041845b82548be60dc3e8285b8b59116b5ab8be9c49db5033b29677f9a"
+    }
+  ],
+  "cases": [
+    {
+      "case": "all-new",
+      "calls": [
+        {
+          "input_layout": "TND",
+          "block_table_present": false
+        }
+      ],
+      "dense_materializer_seq_lens": [],
+      "expected_branch_reproduced": true
+    },
+    {
+      "case": "continuing",
+      "calls": [
+        {
+          "input_layout": "TND",
+          "block_table_present": false
+        }
+      ],
+      "dense_materializer_seq_lens": [
+        [
+          9
+        ]
+      ],
+      "expected_branch_reproduced": true
+    },
+    {
+      "case": "decode-and-continuing",
+      "calls": [
+        {
+          "input_layout": "BNSD",
+          "block_table_present": true
+        },
+        {
+          "input_layout": "TND",
+          "block_table_present": false
+        }
+      ],
+      "dense_materializer_seq_lens": [
+        [
+          9
+        ]
+      ],
+      "expected_branch_reproduced": true
+    },
+    {
+      "case": "new-and-continuing",
+      "calls": [
+        {
+          "input_layout": "TND",
+          "block_table_present": false
+        }
+      ],
+      "dense_materializer_seq_lens": [
+        [
+          2,
+          9
+        ]
+      ],
+      "expected_branch_reproduced": true
+    },
+    {
+      "case": "all-new-missing-float-key",
+      "calls": [
+        {
+          "input_layout": "TND",
+          "block_table_present": false
+        }
+      ],
+      "dense_materializer_seq_lens": [
+        [
+          2,
+          3
+        ]
+      ],
+      "expected_branch_reproduced": true
+    },
+    {
+      "case": "all-new-missing-float-value",
+      "calls": [
+        {
+          "input_layout": "TND",
+          "block_table_present": false
+        }
+      ],
+      "dense_materializer_seq_lens": [
+        [
+          2,
+          3
+        ]
+      ],
+      "expected_branch_reproduced": true
+    },
+    {
+      "case": "decode-only",
+      "calls": [
+        {
+          "input_layout": "BNSD",
+          "block_table_present": true
+        }
+      ],
+      "dense_materializer_seq_lens": [],
+      "expected_branch_reproduced": true
+    }
+  ],
+  "limitations": [
+    "No Host module or Torch/NPU module imported.",
+    "No tensor values, numerical correctness, runtime reachability, or performance measured.",
+    "Extracted method is not a supported runtime API or accepted provider."
+  ],
+  "runtime_verified": false,
+  "execution_authorized": false,
+  "task_quality_claim": false,
+  "performance_claim": false
+}

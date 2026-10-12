@@ -49,6 +49,7 @@ include = [
   "/README.zh.md",
   "/LICENSE",
   "/NOTICE",
+  "/MOD_METADATA.json",
   "/docs",
   "/scripts",
   "/src",
