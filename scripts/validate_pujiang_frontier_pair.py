@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -316,6 +317,7 @@ def normalize_outcomes(
                     "Judge returned another model",
                 )
                 try:
+                    require(response.get("error") is None, "Judge returned API error")
                     choices = response["choices"]
                     require(
                         isinstance(choices, list) and len(choices) == 1,
@@ -323,9 +325,20 @@ def normalize_outcomes(
                     )
                     choice = obj(choices[0], "judge choice")
                     require(
+                        type(choice.get("index")) is int and choice["index"] == 0,
+                        "Judge choice index must be integer zero",
+                    )
+                    require(
                         choice.get("finish_reason") == "stop", "Judge output truncated"
                     )
-                    answer = obj(choice.get("message"), "judge message")["content"]
+                    message = obj(choice.get("message"), "judge message")
+                    require(message.get("role") == "assistant", "Judge role mismatch")
+                    require(
+                        message.get("refusal") in (None, "")
+                        and message.get("tool_calls") in (None, []),
+                        "Judge refused or returned tool calls",
+                    )
+                    answer = message["content"]
                     scorer.parse_verdict(row["track"], answer)
                     result["judge_response"] = answer
                 except (ValueError, TypeError, KeyError) as error:
@@ -441,7 +454,8 @@ def main() -> int:
             args.judge_contract,
             args.calibration,
         )
-        with args.output.open("x", encoding="utf-8") as output:
+        descriptor = os.open(args.output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as output:
             output.write(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         print(json.dumps({"status": "error", "message": str(error)}))

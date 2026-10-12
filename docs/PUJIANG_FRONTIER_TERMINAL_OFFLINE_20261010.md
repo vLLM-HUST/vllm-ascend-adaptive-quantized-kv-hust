@@ -1,6 +1,7 @@
 # FrontierScience / Terminal：离线证据接入
 
-日期：2026-10-10。状态：本地开发完成，尚未提交或得到合同审阅。
+日期：2026-10-10。初始记录时尚未提交；2026-10-12 已进入公共 Draft PR #12，
+仍未合并或得到合同审阅。各阶段历史回执保留。
 两个工具均不调用模型、judge API、Harbor、Docker 或设备，不下载任务资产或镜像。
 只读取用户指定的已有 JSON；新报表拒绝覆盖旧文件。
 
@@ -57,6 +58,10 @@ collection 记录绑定相同 judge/calibration 摘要和“作答前冻结”�
 problem/reference/attempt 必须匹配对应题及原始尝试，不能换题、换 rubric 或事后换答案。
 响应 model 必须匹配；从响应重新提取 verdict，忽略缓存 correct/grade 字段。
 格式错误、多个矛盾 verdict 或 judge 截断会保留为 judge_error，而非丢弃样本。
+2026-10-12 审查修正：原始响应还必须无 API error、唯一 choice 的 index 为整数 0、
+message role 为 assistant，且无拒答或非空 tool_calls；可解析的 verdict 不能覆盖
+这些失败。缺少 index/role 的旧不完整 fixture 也不再接受为已判分，需保留完整响应。
+报表创建即为 0600，不依赖外部 umask，仍拒绝覆盖已有文件。
 候选 Research parser 的 0-10 / >=7 语义来自固定共享源码，不是本模块确认的官方协议。
 
 输出规则：

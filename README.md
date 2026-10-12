@@ -152,6 +152,9 @@ uv pip install -e ".[test,component]"
 The explicit module is `vllm_ascend_adaptive_quantized_kv.reference`, exposing
 `paged_int8_attention_reference`. Its docstring specifies the input contract;
 `tests/test_reference.py` supplies executable input and dense-oracle examples.
+The [tile/page cost review](docs/REFERENCE_TILE_COST_REVIEW_20261012.md)
+counts repeated dequantization and floating QK/PV in this CPU reference; it is
+not a hardware traffic, memory-peak, or performance measurement.
 CPU FP64/FP32/FP16/BF16 agreement does not establish bitwise FIA equivalence,
 NPU correctness, graph safety, quality or end-to-end performance. Default
 discovery imports neither Torch nor the reference; the manifest remains inert.

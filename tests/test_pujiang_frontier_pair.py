@@ -107,11 +107,13 @@ def make_payload(scorer):
                     "model": spec["model_revision"],
                     "choices": [
                         {
+                            "index": 0,
                             "finish_reason": "stop",
                             "message": {
+                                "role": "assistant",
                                 "content": "VERDICT: CORRECT"
                                 if track == "olympiad"
-                                else "VERDICT: 8"
+                                else "VERDICT: 8",
                             },
                         }
                     ],
@@ -457,6 +459,67 @@ def test_bad_or_truncated_judge_response_is_retained_ungraded(
     assert report["track_counts"]["B1"]["research"]["ungraded"] == 1
 
 
+@pytest.mark.parametrize(
+    ("location", "field", "value"),
+    [
+        ("response", "error", {"message": "judge failed"}),
+        ("response", "error", {}),
+        ("choice", "index", 1),
+        ("choice", "index", False),
+        ("choice", "index", None),
+        ("message", "role", "user"),
+        ("message", "role", None),
+        ("message", "refusal", "cannot grade this attempt"),
+        ("message", "tool_calls", [{"type": "function"}]),
+    ],
+)
+def test_contradictory_judge_response_cannot_grade_a_parseable_verdict(
+    tmp_path, payload, stub_scorer, monkeypatch, location, field, value
+):
+    response = payload[2]["B1"]["outcomes"][1]["judge"]["response"]
+    target = {
+        "response": response,
+        "choice": response["choices"][0],
+        "message": response["choices"][0]["message"],
+    }[location]
+    target[field] = value
+    envelope, paths = write_inputs(tmp_path, payload)
+    monkeypatch.setattr(m, "load_scorer", lambda checkout: stub_scorer)
+    report = validate_written(envelope, paths, tmp_path)
+    result = report["normalized_outcomes"]["B1"][1]
+    assert result["status"] == "judge_error"
+    assert "judge_response" not in result
+    assert result["judge_parse_error"]
+    assert report["track_counts"]["B1"]["research"] == {
+        "tasks": 2,
+        "solver_errors": 1,
+        "ungraded": 1,
+        "length_limited": 1,
+    }
+    assert report["task_quality"] is None
+
+
+def test_command_creates_private_report_even_with_permissive_umask(
+    tmp_path, monkeypatch, capsys
+):
+    report = {"status": "offline_validated_runtime_unverified"}
+    monkeypatch.setattr(m, "validate_pair", lambda *args: report)
+    output = tmp_path / "private.json"
+    argv = ["validate_pujiang_frontier_pair.py"]
+    for name in ("envelope", "inventory", "b0", "b1", "benchmark-checkout"):
+        argv.extend(["--" + name, str(tmp_path / name)])
+    argv.extend(["--output", str(output)])
+    monkeypatch.setattr(sys, "argv", argv)
+    previous = os.umask(0)
+    try:
+        assert m.main() == 0
+    finally:
+        os.umask(previous)
+    assert output.stat().st_mode & 0o777 == 0o600
+    assert json.loads(output.read_text()) == report
+    assert json.loads(capsys.readouterr().out)["status"] == report["status"]
+
+
 def test_duplicate_json_keys_rejected_despite_matching_checksum(tmp_path, payload):
     envelope, paths = write_inputs(tmp_path, payload)
     paths["B1"].write_bytes(b'{"outcomes":[],"outcomes":[]}')
@@ -558,6 +621,34 @@ def test_real_aggregate_does_not_drop_malformed_grade_or_truncation(
     assert scores["accuracy"] is None and scores["mean_points"] is None
     assert scores["tasks"] == 2 and scores["ungraded"] == 1
     assert report["track_counts"]["B1"]["research"]["length_limited"] == 1
+
+
+def test_real_aggregate_retains_api_failure_in_denominator(
+    tmp_path, real_scorer_checkout
+):
+    payload = make_payload(m.load_scorer(real_scorer_checkout))
+    payload[2]["B1"]["outcomes"][1]["judge"]["response"]["error"] = {
+        "message": "failed despite a cached verdict"
+    }
+    envelope, paths = write_inputs(tmp_path, payload)
+    report = validate_written(envelope, paths, real_scorer_checkout)
+    scores = report["fixture_scores"]["B1"]["research"]
+    assert scores["tasks"] == 2 and scores["ungraded"] == 1
+    assert scores["solver_errors"] == 1
+    assert scores["accuracy"] is None and scores["mean_points"] is None
+    assert report["fixture_scores"]["B0"]["research"]["accuracy"] == 0.5
+
+
+def test_optional_empty_error_refusal_and_tool_calls_do_not_reject_valid_grade(
+    tmp_path, payload, stub_scorer, monkeypatch
+):
+    response = payload[2]["B1"]["outcomes"][1]["judge"]["response"]
+    response["error"] = None
+    response["choices"][0]["message"].update(refusal=None, tool_calls=[])
+    envelope, paths = write_inputs(tmp_path, payload)
+    monkeypatch.setattr(m, "load_scorer", lambda checkout: stub_scorer)
+    report = validate_written(envelope, paths, tmp_path)
+    assert report["normalized_outcomes"]["B1"][1]["status"] == "graded"
 
 
 def test_real_command_refuses_to_overwrite_existing_report(

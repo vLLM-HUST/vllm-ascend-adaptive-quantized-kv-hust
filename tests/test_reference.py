@@ -189,6 +189,82 @@ def test_page_work_and_query_tile_shapes(monkeypatch):
 
 
 @pytest.mark.parametrize(
+    "kv_lengths,query_lengths,tile,block,dtype,noncontiguous",
+    [
+        ((257,), (63,), 64, 128, torch.float32, False),
+        ((257,), (129,), 64, 128, torch.float32, False),
+        ((129,), (129,), 32, 32, torch.float32, False),
+        ((81, 35), (40, 5), 3, 32, torch.float32, False),
+        ((65,), (33,), 16, 32, torch.float32, True),
+        ((65,), (33,), 16, 32, torch.bfloat16, False),
+        ((65,), (33,), 16, 32, torch.float16, False),
+        ((65,), (33,), 16, 32, torch.float64, False),
+    ],
+)
+def test_source_cost_counts_and_floating_attention(
+    monkeypatch, kv_lengths, query_lengths, tile, block, dtype, noncontiguous
+):
+    case = make_case(
+        kv_lengths=kv_lengths,
+        query_lengths=query_lengths,
+        dim=64,
+        block_size=block,
+        dtype=dtype,
+    )
+    case["query_tile_size"] = tile
+    if noncontiguous:
+        for name in ("query", "key_nz", "value_nz"):
+            original = case[name]
+            expanded = torch.empty(
+                (*original.shape[:-1], original.shape[-1] * 2), dtype=original.dtype
+            )
+            case[name] = expanded[..., ::2]
+            case[name].copy_(original)
+            assert not case[name].is_contiguous()
+    observed = {"calls": 0, "elements": 0, "qk_mac": 0, "pv_mac": 0}
+    dequantize, einsum = reference._dequantize_page, torch.einsum
+    math_dtype = torch.float64 if dtype == torch.float64 else torch.float32
+
+    def tracked_page(*args):
+        result = dequantize(*args)
+        assert result.dtype == math_dtype
+        observed["calls"] += 1
+        observed["elements"] += result.numel()
+        return result
+
+    def tracked_einsum(equation, *args):
+        assert all(value.dtype == math_dtype for value in args)
+        if equation == "qhgd,bhd->hgqb":
+            observed["qk_mac"] += args[0].shape[0] * args[1].shape[0] * 4 * 64
+        elif equation == "hgqb,bhd->hgqd":
+            observed["pv_mac"] += args[0].shape[2] * args[1].shape[0] * 4 * 64
+        else:
+            raise AssertionError(f"unexpected reference equation: {equation}")
+        return einsum(equation, *args)
+
+    monkeypatch.setattr(reference, "_dequantize_page", tracked_page)
+    monkeypatch.setattr(torch, "einsum", tracked_einsum)
+    actual = reference.paged_int8_attention_reference(**case)
+    expected = {"calls": 0, "elements": 0, "qk_mac": 0, "pv_mac": 0}
+    for kv, query in zip(kv_lengths, query_lengths, strict=True):
+        rounds, pages = (query + tile - 1) // tile, (kv + block - 1) // block
+        expected["calls"] += 2 * rounds * pages
+        expected["elements"] += 2 * rounds * kv * 2 * 64
+        expected["qk_mac"] += query * kv * 4 * 64
+        expected["pv_mac"] += query * kv * 4 * 64
+    assert observed == expected
+    tolerance = {
+        torch.float64: 1e-12,
+        torch.float32: 2e-5,
+        torch.float16: 4e-3,
+        torch.bfloat16: 3e-2,
+    }[dtype]
+    torch.testing.assert_close(
+        actual, dense_oracle(case), rtol=tolerance, atol=tolerance
+    )
+
+
+@pytest.mark.parametrize(
     "field,change,match",
     [
         ("key_nz", lambda t: t.float(), "INT8"),

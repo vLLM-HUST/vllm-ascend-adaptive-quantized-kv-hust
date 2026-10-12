@@ -5,11 +5,11 @@ For the current five-dataset delivery priority and updated PR/asset states, see
 This document retains the earlier Host ownership and activation requirements;
 its dated CI/PR snapshots are historical, not current execution receipts.
 Formal delivery now follows the
-[V5.4 alignment](PUJIANG_V54_ALIGNMENT_20261010.md): mandatory BF16 and
+[V5.5 alignment](PUJIANG_V55_ALIGNMENT_20261012.md): mandatory BF16 and
 signed B0/B1 identities, with inactive E1/E2 deliveries. The scope of INT8 KV
 inside a BF16 B1 engine remains unresolved; earlier C8 research plans do not
 authorize formal measurements. The Host activation requirements below remain
-necessary for an AQKV candidate, not evidence that V5.4 admission is complete.
+necessary for an AQKV candidate, not evidence that V5.5 admission is complete.
 
 ## Authority and precedence
 
