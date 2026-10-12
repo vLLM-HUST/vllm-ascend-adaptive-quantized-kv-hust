@@ -67,7 +67,7 @@ manifest、验签通过，并验证字段可生成唯一命令且与实际生效
    后续 [HLE/SWE 离线对应核验](PUJIANG_HLE_SWE_SOURCE_AUDIT_20261012.md) 已完成
    HLE 公开清单/指针与 SWE 实际源行/harness blob 对应；不等于完整 HLE 原题重跑、
    镜像/沙箱/judge 或正式数据范围已获准，执行标志继续为 false。
-3. 继续送审当前插件 Draft PR #12；保持 Host #35/#37 原 head 不动。等待 #37 七文件
+3. 继续送审当前插件 Draft PR #12；不修改 Host #35/#37 工作树或自行推送。等待 #37 七文件
    测试候选的提交/正常 CI 路线答复，不能在旧产品分支上绕过设备和总 gate。
    七个候选文件在新 main 原字节不变，独立副本 patch apply-check 通过；这不是 CI。
 4. 发布与评测工程交付正式身份材料；Host 接纳、C8 profile、正式选题/scorer、权利、
@@ -75,7 +75,7 @@ manifest、验签通过，并验证字段可生成唯一命令且与实际生效
 5. 只有适用项目全部满足依赖，才连接真实有界 transport/token parity、目标路径及
    B0/B1。原始结果先入公共 benchmark，再回链 Issue 和同步网站。
 
-截至本轮只读刷新：Issue #10/#1 与 Host #35/#37 没有新的负责人回复；#12 尚无评论
+截至本文件首轮只读刷新：Issue #10/#1 与 Host #35/#37 没有新的负责人回复；#12 尚无评论
 或审阅。公共 Plugin CI 的四项成功来自此前提交，不证明本次增量或 Host/NPU 验收。
 PyramidKV 新增服务恢复及外部依赖催办不属于 AQKV 运行证据，不连接或复用其占卡服务。
 
@@ -95,3 +95,36 @@ python -m pytest -q tests/test_pujiang_readiness.py
 公共 CI、Host/NPU 或正式成绩。构建与公共 CI 按各自确切提交单独记录。
 后续来源核验增量的完整本地回归为 865 passed / 0 skip，默认 840 passed / 25 skip；
 新数据集真实输入集成默认增加一项 skip，不能将缺输入提升为通过。
+
+## 5. 10 月 12 日晚间增量
+
+[老师的 Host #35 更新](https://github.com/vLLM-HUST/vllm-ascend-hust/pull/35#issuecomment-6126352497)
+已合入 main `e5870e657a2add3182551c70bbad5919fc96d899`，当前 head 为
+`4f2de34002f1af09463ce8dc8e06bacaaac25dae`，保持 Draft/未合并。
+随后 [CI #38262355797](https://github.com/vLLM-HUST/vllm-ascend-hust/actions/runs/38262355797)
+的 pre-commit 通过，但两个 CPU 版本均在加载 `tests/ut/conftest.py` 时失败：
+`triton.runtime.jit` 无法导入，退出码 4；provider UT 尚未进入执行，总 gate 失败，
+所选设备任务跳过。这不是 provider 数值失败，也不是 Host 接纳或 NPU 资格通过。
+
+当前基线与该 head 的 `conftest.py` 原字节相同：CPU 分支把整个 `triton.runtime`
+替换为 `MagicMock`，破坏后续真实 Gluon 所需的子包导入。已有候选只保留 runtime 包、
+mock driver；其当前源码片段加显式合成 Triton 层级的隔离复现，以及对两个源码副本的
+patch apply-check 均通过。**不等于安装真实 Triton、完整 Host collection 或公共 CI 通过。**
+这个单文件补丁尚未提交 Host，先确认提交路线，再走正常双版本 CPU 与设备门禁。
+
+与旧 #35 head `084f70f` 对照，provider 协议、470 行 provider UT、四个核心 provider
+方法及 weights-after-loading 方法未变。两个原生回退函数则新增 `.contiguous()`：
+连续化不取消 dense materialization，是否实际复制取决于张量布局；不能把旧路径/成本
+回执直接升级为新 Host 实测。当前 main 新增的 MXFP 路径也不自动替代本课题的
+per-channel paged INT8 合同。
+
+benchmark 新 main `25bb369a2a188b33b4be4097dd2fe7ea4ca65c40` 合并
+[PR #277 的 MMLU-Pro 开发预检](https://github.com/vLLM-HUST/vllm-hust-benchmark/pull/277)。
+其 V5.5 声明原字节未变。对公开逐题表复算得到 12,032 题、9,609 正确、56 无效答案、
+1,533 次输出上限截断、零 transport failure；不是重新评测或复核未公开原始输出。
+报告明确是 unsigned development precheck：非正式 B0、没有 B1/AQKV、没有新增
+Dataset Matrix cell。引擎/客户端/生命周期/镜像及权重身份缺口不因报告合并而解除。
+保留完整分母及截断分组，不能用正常结束子集的准确率替代全量分数，也不修改冻结预算。
+
+下一步先解除当前 CPU 导入阻塞，再解释后续真实测试结果；Host/profile/B1 准入与
+V5.5 实际签名材料仍分别核验。Plugin 准备代码与 CI 不授权运行真实模型。
