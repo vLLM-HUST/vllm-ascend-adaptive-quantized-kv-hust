@@ -1,0 +1,45 @@
+{
+  "schema_version": "aqkv-mmlu-local-token-audit-receipt/v1",
+  "status": "local_tokens_verified_candidate_plan_execution_blocked",
+  "dataset_revision": "b189ec765aa7ed75c8acfea42df31fdae71f97be",
+  "benchmark_revision": "8ed7ec9a16075c5bce5644a68a712139a6e5d403",
+  "task_count": 70,
+  "coverage": "explicit-named-subset-candidate-unreviewed",
+  "source_tasks_sha256": "0aff3eed2e7e4d24777c1902a2673827a766803f2c19de565ddd80b153fb621a",
+  "tokenized_tasks_sha256": "d5de36d2dda4961b68921473e79934ab65222e55af8d09a600ab0a35c4c44ba1",
+  "raw_plan_sha256": "1c8ecfa8d942e352f21ff0b9a6bb0218f6b01f1eb30cb22959a3ec8a50680c5c",
+  "tokenizer": {
+    "repository": "Qwen/Qwen3.5-35B-A3B",
+    "revision": "59d61f3ce65a6d9863b86d2e96597125219dc754",
+    "files_sha256": {
+      "tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "tokenizer_config.json": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+      "chat_template.jinja": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715"
+    },
+    "downloaded_bytes": 12832448,
+    "library_versions": {
+      "transformers": "4.57.1",
+      "tokenizers": "0.22.2",
+      "jinja2": "3.1.6"
+    },
+    "scope": "local-text-only-not-serving-runtime"
+  },
+  "context_audit": {
+    "prompt_tokens_min": 913,
+    "prompt_tokens_max": 2147,
+    "candidate_generation_tokens": 2048,
+    "candidate_context_tokens": 32768,
+    "context_exceeded_count": 0,
+    "all_tasks_retained": true,
+    "truncation_applied": false,
+    "shared_and_direct_token_ids_equal": true
+  },
+  "serving_tokenizer_verified": false,
+  "model_weights_verified": false,
+  "transport_verified": false,
+  "runtime_activation_verified": false,
+  "model_requests_sent": 0,
+  "task_quality": null,
+  "formal_execution_authorized": false,
+  "performance_claim": false
+}

@@ -1,0 +1,119 @@
+{
+  "agent_timeout_values_sec": [
+    600.0,
+    750.0,
+    900.0,
+    1200.0,
+    1800.0,
+    2400.0,
+    3600.0,
+    7200.0,
+    12000.0
+  ],
+  "archive_sha256_verified": false,
+  "benchmark_revision": "8ed7ec9a16075c5bce5644a68a712139a6e5d403",
+  "claim_boundary": {
+    "execution_authorized": false,
+    "performance_claim": false,
+    "public_surface_restoration": false,
+    "runtime_ready": false,
+    "task_quality_claim": false
+  },
+  "declared_agent_timeout_sum_sec": 151950.0,
+  "declared_verifier_timeout_sum_sec": 149160.0,
+  "execution_authorized": false,
+  "harbor_schema_validated_locally": false,
+  "image_layers_pulled": false,
+  "image_pin_semantics_verified": true,
+  "layer_descriptor_multiplicity_reverified": false,
+  "local_staged_modes_verified": false,
+  "local_validation": {
+    "complete_explicit_input_tests": 902,
+    "default_passed": 876,
+    "default_skipped": 26,
+    "focused_tests": 37,
+    "pinned_upstream_terminal_tests": 50,
+    "scope": "local offline preparation; public CI verified separately by exact head"
+  },
+  "model_requests_sent": 0,
+  "published_layer_total_excesses": [
+    {
+      "difference_bytes": 32,
+      "published_descriptor_bytes": 355841799,
+      "task_id": "crack-7z-hash",
+      "unique_layer_bytes": 355841767
+    },
+    {
+      "difference_bytes": 93,
+      "published_descriptor_bytes": 95724176,
+      "task_id": "git-leak-recovery",
+      "unique_layer_bytes": 95724083
+    }
+  ],
+  "published_unique_compressed_layer_bytes": 16699830105,
+  "published_unique_layers": 319,
+  "raw_source_and_mail_published": false,
+  "ready_for_scored_execution": false,
+  "registry_metadata_bytes_reverified": false,
+  "resource_values": {
+    "allow_internet": [
+      true
+    ],
+    "build_timeout_sec": [
+      600.0
+    ],
+    "cpus": [
+      1,
+      2,
+      4
+    ],
+    "gpus": [
+      0
+    ],
+    "memory_mb": [
+      2048,
+      4096,
+      8192
+    ],
+    "storage_mb": [
+      10240
+    ]
+  },
+  "retrieval_route": "pinned Git blobs, not a completed source archive retrieval",
+  "rights_review_complete": false,
+  "schema_version": "aqkv-terminal-source-summary/v1",
+  "source_bytes_verified": 59252655,
+  "source_files_verified": 1101,
+  "source_git_file_modes_sha256": "9387b9744903fca6df60da298d114dd21af68e7e4449c1da8b14ab1f3cde09c1",
+  "source_git_mode_counts": {
+    "100644": 1023,
+    "100755": 12
+  },
+  "source_git_modes_verified": true,
+  "source_membership_verified": true,
+  "source_revision": "7131e4375048a0e408a8fb404b5f499d726b695b",
+  "source_script_sha256": {
+    "audit": "9dcfbec30b1a75df2fca3e46b23b3aee12779912c1db8b15c6d0ae9e18a5951c",
+    "plan": "1a36a171be3db57964284bc2ff9fa26cd218ef9f766ed3bdaafa548e55780a95"
+  },
+  "source_tree_root": "ddbd9031e59804a04e24019fc408d51b56a4e773",
+  "source_tree_sha256": "c7cf0a039f77fa21292e1436f4a22293c2179e26532b4838c289ff6b1f9c26f9",
+  "status": "terminal_source_bound_execution_blocked",
+  "task_bindings_sha256": "b1f426006f582c31926b0efc5927d67f920740082cd5f4400f54c8d77c1c809a",
+  "task_count": 89,
+  "task_files_verified": 1035,
+  "task_quality": null,
+  "task_source_bytes_verified": true,
+  "tasks_executed": 0,
+  "verifier_timeout_values_sec": [
+    360.0,
+    600.0,
+    900.0,
+    1200.0,
+    1800.0,
+    2400.0,
+    3600.0,
+    7200.0,
+    12000.0
+  ]
+}

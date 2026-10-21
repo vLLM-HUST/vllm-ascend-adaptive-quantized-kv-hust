@@ -2,7 +2,7 @@
 
 本仓库是 Adaptive Quantized KV 课题面向 vLLM-HUST 和 Ascend 的独立扩展。
 
-当前处于 P1 打包阶段，只提供 Extension Manager 0.2 实验性静态清单、宿主合同兼容性回执、
+当前处于 P1 打包阶段，只提供 Extension Manager 0.3 实验性静态清单、宿主合同兼容性回执、
 ACL Graph reset/recapture 回执校验，以及下一阶段所需的通用宿主接口提案。
 
 另提供需要显式导入的 CPU 分页 INT8 attention 参考实现，承接研究仓已关闭 PR #19
@@ -44,23 +44,38 @@ Extension Manager 与 NPU serving 回执、回滚和退出清理证据，并为�
 - 宿主架构、接口交付与最终 go/no-go 负责人：
   [`@ShuhaoZhangTony`](https://github.com/ShuhaoZhangTony)，责任边界记录在
   [Issue #1](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1)。
-- 当前集成工作由 Draft PR #4 承载；恢复矩阵闭合前，默认发行包继续保持
-  `import_only`。
-- 第一组预注册交付测试固定为 `Qwen3.5-35B-A3B`、TP2、APC、MTP2、async、
-  `FULL_AND_PIECEWISE`，使用官方 benchmark 的
-  `prefix-repetition-online-2chip` 场景；合同见
+- 插件 PR #4/#5 已合并，PR #11 将规范升级到 manifest 0.3；这些合并不等于
+  宿主接纳或真实运行时激活。恢复矩阵闭合前，默认发行包继续保持 `import_only`。
+- 当前优先交付为浦江指定五数据集，责任工单为
+  [Issue #10](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/10)，
+  总账为 [benchmark Issue #254](https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254)。
+  已准备但尚未审阅的适用性矩阵与执行缺口见
+  [`docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md`](docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md)。
+  当前 authority 是 [V5.5 控制](docs/PUJIANG_V55_ALIGNMENT_20261012.md)，真实发布/
+  运行身份由发布与评测工程生产，不凭本地 fixture 推断。
+  [目标路径核验设计](docs/PUJIANG_PATH_VERIFICATION_PLAN_20261012.md) 已准备，
+  不是已接纳的 observer API 或真实路径回执。
+  任务质量是主指标，服务吞吐与延迟仅为辅助。
+  固定共享工具复用审查与 MMLU 已存输出的离线评分接口见
+  [`docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md`](docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md)。
+  离线评分不证明官方成绩或 AQKV 真实运行。
+- 原 `Qwen3.5-35B-A3B`、TP2、APC、MTP2、async、`FULL_AND_PIECEWISE`
+  的 `prefix-repetition-online-2chip` 预注册 pilot 保留为补充诊断，不能替代
+  五项任务质量验收；合同见
   [`docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md)。
 
 “持续维护”不等于“运行时已可用”。校准 profile、宿主已接纳且可达的
 Host/provider 版本、真实 Manager 激活、NPU 正确性、图回放、回滚与清理证据
 仍是性能测试和恢复公开展示前的强制门禁。
 
-10 月前的分级施工顺序见
+历史 10 月前的分级施工顺序保留于
 [`docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md`](docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md)。
 
 历史实验脚本、原始证据和结论继续保存在
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv)，
-不会混入 PyPI 运行时包。不包含真实运行结果的公开交付合同与 fail-closed 校验器
+不会混入 PyPI 运行时包。新增五数据集原始结果必须先进入公共
+`vLLM-HUST/vllm-hust-benchmark`，再同步网站；本仓库的规划记录不含实测成绩。
+不包含真实运行结果的公开交付合同与 fail-closed 校验器
 维护在本仓库，见
 [`Qwen3.5 correctness 合同`](docs/QWEN35_CORRECTNESS_RECEIPT_CONTRACT_20260929.md)
 和

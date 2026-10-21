@@ -1,0 +1,434 @@
+{
+  "schema_version": "adaptive-quantized-kv-pujiang-readiness/v1",
+  "record_kind": "planning-only",
+  "updated_at": "2026-10-12",
+  "review_status": "prepared-unreviewed",
+  "module_owner": "XilingGao",
+  "delivery_control": {
+    "test_plan_version": "V5.5",
+    "source_revision": "9e7f83388d72a37767fd9f24636219093ecbe662",
+    "snapshot_path": "docs/evidence/PUJIANG_V55_CONTRACT_SOURCE_20261012.json",
+    "snapshot_sha256": "9e64b0d19f84f9c4285fbdd9da12e2b6608ed02a8e9982bae9ec5c4f4ede538c",
+    "mandatory_model": "Qwen/Qwen3.5-35B-A3B",
+    "hardware": "Ascend 910B2",
+    "chip_count": 2,
+    "tensor_parallel_size": 2,
+    "precision": "BF16",
+    "dtype": "bfloat16",
+    "baseline_roles": ["B0", "B1"],
+    "inactive_optional_deliveries": ["E1", "E2-G", "E2-D"],
+    "source_fidelity": "semantic-mirror",
+    "canonical_final_identity": {
+      "status": "declared-external-identity",
+      "sha256": "bc61b65162952c28cde066ee3829aa58f15bf9ed0843d485e8b1a832410489d2",
+      "size_bytes": 637379,
+      "page_count": 83,
+      "verified_locally": false
+    },
+    "canonical_final_document_verified": false,
+    "b0_receipt_gate": {
+      "name": "35B B0 result configuration and provenance receipt",
+      "owner": "release-and-evaluation-engineering",
+      "owner_zh": "课题组（发布与评测工程）",
+      "producer": "release-and-evaluation-engineering-process",
+      "required_materials": [
+        "signed_release_manifest",
+        "b0_oci_repo_digest",
+        "b1_oci_repo_digest",
+        "complete_server_argv",
+        "complete_client_contract",
+        "effective_runtime_receipt",
+        "startup_receipt",
+        "model_manifest",
+        "tokenizer_manifest",
+        "dataset_identity",
+        "arrival_sequence",
+        "result_table",
+        "raw_requests"
+      ],
+      "value_source": "actual-release-artifacts-and-actual-runtime",
+      "prefill_actual_values": false,
+      "infer_actual_values": false,
+      "action_zh": "按表附-1至表附-9生成并冻结签名release manifest、两侧OCI RepoDigest、完整server argv/client contract和effective/startup receipt；与模型、tokenizer、数据、到达序列、结果表及原始请求建立校验绑定。",
+      "release_criterion_zh": "发布工件与实际运行生成的材料全部纳入同一不可变manifest并验签通过；字段可生成唯一命令且与生效值一致，方可纳入正式B0。"
+    },
+    "aqkv_formal_inclusion_status": "unresolved-kv-precision-scope-and-b1-manifest",
+    "optional_measurements_enqueued": 0,
+    "execution_authorized": false
+  },
+  "sources": {
+    "plugin_revision": "9f9844ec7d73bdd627edf3930f3ec6cb5ef5f325",
+    "benchmark_revision": "e3a7183206bd399447475b2d117fef897c0880b6",
+    "program_path": "leaderboard-data/dataset-validation/dataset_program_v1.json",
+    "snapshot_path": "docs/evidence/PUJIANG_DATASET_PROGRAM_SOURCE_20261009.json",
+    "snapshot_sha256": "de1347eb1557f7e82ea3314c118ee090df1d4a87dd18e474c801b4be3a8185a4",
+    "shared_implementation_revision": "8ed7ec9a16075c5bce5644a68a712139a6e5d403",
+    "program_snapshot_unchanged_at_shared_revision": true,
+    "latest_observed_benchmark_revision": "9e7f83388d72a37767fd9f24636219093ecbe662",
+    "latest_program_sha256": "431290969ca2ac77ece4bde4d3e307c05c79a31102b6ee1cec5416fd6aa5fcb0",
+    "latest_program_diff_scope": "V5.5 replaces V5.4 execution authority and declares B0 release/evaluation ownership; frozen asset-ledger snapshot and shared implementation pin are preserved",
+    "module_issue": "https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/10",
+    "canonical_issue": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254",
+    "host_main_revision": "f939ad767b60d60253c3e20c7522defe69e4ca78",
+    "latest_observed_host_main_revision": "82f586f8dcb5f92f8f3d55727bc05b3e2887606d",
+    "host_main_revision_scope": "historical 2026-10-10 test reconciliation; latest observed main is not accepted runtime identity",
+    "host_provider_candidate_revision": "084f70f50dfcdf2daf66b3a31813bc982c2d1d09",
+    "host_provider_candidate_state": "open-draft",
+    "host_ci_candidate_revision": "3fb17f2a9eb140cd785d390645a9c743344f9d29",
+    "host_ci_candidate_state": "open-draft"
+  },
+  "runtime": {
+    "manifest_schema": "0.3-experimental",
+    "implementation_status": "import_only",
+    "accepted_host_revision": null,
+    "calibrated_profile_receipt": null,
+    "manager_activation_receipt": null,
+    "npu_correctness_receipt": null,
+    "assigned_execution_environment": null,
+    "asset_access_verified_locally": false
+  },
+  "claim_boundary": {
+    "runtime_ready": false,
+    "execution_authorized": false,
+    "task_quality_claim": false,
+    "performance_claim": false,
+    "public_surface_restoration": false
+  },
+  "shared_blockers": [
+    {
+      "id": "v55-aqkv-inclusion",
+      "owner": null,
+      "scope": "formal-delivery-contract",
+      "required_input": "Confirm whether V5.5 BF16 allows this B1 engine's INT8 KV cache and its exact signed B1 inclusion. B0 receipt ownership is known, but it does not decide AQKV admission. No C8 formal target or optional E1/E2 queue is inferred from historical research plans.",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/9e7f83388d72a37767fd9f24636219093ecbe662/docs/ACCEPTANCE_V5_5.md"
+    },
+    {
+      "id": "v55-b0-release-receipt",
+      "owner": "release-and-evaluation-engineering",
+      "scope": "formal-delivery-identity",
+      "required_input": "Release/evaluation engineering must produce all 13 actual-artifact/actual-runtime materials in the pinned V5.5 b0_receipt_gate, bind them in an immutable verified manifest, verify its signature, and reconcile unique commands with effective values. The named role is not an assigned individual or a delivered receipt.",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/9e7f83388d72a37767fd9f24636219093ecbe662/src/vllm_hust_benchmark/data/acceptance_v5_5.json"
+    },
+    {
+      "id": "host-acceptance",
+      "owner": "ShuhaoZhangTony",
+      "scope": "host",
+      "required_input": "Reviewed, exact reachable Host/provider revision and delivery route",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1#issuecomment-5856268495"
+    },
+    {
+      "id": "calibrated-profile",
+      "owner": null,
+      "scope": "host",
+      "required_input": "Exact Qwen3.5 BF16-to-C8 calibration provenance, tensor/shard identities and loading route; final delivery owner to be confirmed",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1#issuecomment-5856268495"
+    },
+    {
+      "id": "provider-correctness",
+      "owner": "XilingGao",
+      "scope": "module",
+      "required_input": "Enableable reviewed provider plus real Manager, NPU, hybrid-cache, MTP2, graph replay, fallback and cleanup receipts",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1#issuecomment-5856268495"
+    },
+    {
+      "id": "host-device-ci",
+      "owner": "XilingGao",
+      "scope": "module",
+      "required_input": "Investigate source-change gate and arrange maintainer/device-runner support; do not bypass required device jobs",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-ascend-hust/pull/37#issuecomment-6073434214"
+    },
+    {
+      "id": "execution-environment",
+      "owner": null,
+      "scope": "resource",
+      "required_input": "Current assigned environment, verified dataset access, device window and cleanup owner; never use server 112",
+      "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+    }
+  ],
+  "datasets": [
+    {
+      "id": "mmlu-pro",
+      "label": "MMLU-Pro",
+      "module_status": "blocked",
+      "module_relevance": "conditional-full-attention-only",
+      "path_hypothesis": "Independent question generation can use full-attention KV, but a single fresh prompt does not prove cached multi-token continuing-prefill. Record cache hits and eligible dispatches before attributing a speedup to this mechanism.",
+      "path_observations": [],
+      "data_readiness": "asset-frozen",
+      "source_revision": "b189ec765aa7ed75c8acfea42df31fdae71f97be",
+      "split": "validation and test Parquet snapshots",
+      "sample_count": null,
+      "sample_count_scope": "Snapshot row counts and the formal evaluation task manifest still need to be extracted; the historical serving command used 200 prompts and is not the dataset cardinality.",
+      "manifest_sha256": "2666f482a6f6c974cde19b6549f72ee37df82a93c9dc032754005af3a839299b",
+      "primary_metric": "Task accuracy under a pinned evaluator",
+      "shared_progress": {
+        "evidence_kind": "other-mod-task-evidence-and-shared-scorer",
+        "source_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254#issuecomment-6088489308",
+        "implementation_path": "src/vllm_hust_benchmark/mmlu_pro_pyramidkv.py",
+        "aqkv_runtime_verified": false,
+        "summary": "Pinned MMLU-Pro scorer and a PyramidKV 70-task compatibility pair exist. These are neither full-dataset scores nor AQKV results. The PyramidKV 4096-token eligibility and selection policy must not be inherited."
+      },
+      "current_blockers": [
+        {
+          "owner": "XilingGao",
+          "required_input": "Local official-source identity, exact Qwen3.5 tokenizer/context audit, source-bound scoring and stored raw request/response normalization are prepared. Review selection/generation/scorer contract and verify serving token parity plus actual bounded B0/B1 transport; stored-record validation is not transport proof. The 70-task synthetic fixtures are not model evidence; do not inherit PyramidKV activation or eligibility."
+        },
+        {
+          "owner": null,
+          "required_input": "Canonical review of the AQKV task/scorer/runtime contract, real target-path and correctness receipts, and a reachable assigned environment."
+        }
+      ],
+      "canonical_blockers": [
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Extract and freeze the full task manifest, row counts, sampling rule, pinned scorer, and execution environment from the verified snapshot.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        },
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Produce task-accuracy evidence; the existing artifact contains serving telemetry only.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        }
+      ],
+      "execution_contract": {
+        "task_manifest_sha256": null,
+        "scorer_revision": null,
+        "execution_environment_digest": null,
+        "rights_review_receipt": null,
+        "agent_contract_sha256": null,
+        "b0_b1_pair_sha256": null
+      },
+      "formal_execution_complete": false,
+      "raw_result_artifacts": [],
+      "task_quality": null,
+      "supporting_telemetry": null
+    },
+    {
+      "id": "hle-verified",
+      "label": "HLE-Verified",
+      "module_status": "blocked",
+      "module_relevance": "conditional-full-attention-only",
+      "path_hypothesis": "Verified questions can exercise full-attention KV; judge inference must be separated from the target-model arm. Long reasoning alone does not prove prefix-cache hits or continuing-prefill dispatch.",
+      "path_observations": [],
+      "data_readiness": "asset-frozen",
+      "source_revision": "b705e0fb541c025a1532ce0d60d70ae2f53b00e0",
+      "split": "Gold, Revision, and Uncertain JSONL subsets",
+      "sample_count": 2500,
+      "sample_count_scope": "Gold 668, Revision 1143, and Uncertain 689; local objects match the upstream Git LFS SHA-256 values.",
+      "manifest_sha256": "2666f482a6f6c974cde19b6549f72ee37df82a93c9dc032754005af3a839299b",
+      "primary_metric": "Accuracy under the pinned HLE-Verified evaluator",
+      "shared_progress": {
+        "evidence_kind": "shared-source-and-modality-audit",
+        "source_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254#issuecomment-6090192232",
+        "implementation_path": "scripts/audit_pyramidkv_hle.py",
+        "aqkv_runtime_verified": false,
+        "summary": "All 2500 source rows have an audit implementation; Gold has 668 tasks including 93 image-bearing tasks. The other MOD service image limit is zero, not a verified constraint of our environment."
+      },
+      "current_blockers": [
+        {
+          "owner": null,
+          "required_input": "Canonical rights review, named full/Gold task scope, pinned judge and image-aware solver/scorer/environment contract."
+        },
+        {
+          "owner": "XilingGao",
+          "required_input": "Verify image handling on the accepted target runtime; do not silently discard image tasks or leak rationale images into solver inputs."
+        }
+      ],
+      "canonical_blockers": [
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Upstream does not declare a dataset license; complete license review before formal execution.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        },
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Choose and freeze the evaluated subset, task manifest, judge model and prompts, scorer, and execution image.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        }
+      ],
+      "execution_contract": {
+        "task_manifest_sha256": null,
+        "scorer_revision": null,
+        "execution_environment_digest": null,
+        "rights_review_receipt": null,
+        "agent_contract_sha256": null,
+        "b0_b1_pair_sha256": null
+      },
+      "formal_execution_complete": false,
+      "raw_result_artifacts": [],
+      "task_quality": null,
+      "supporting_telemetry": null
+    },
+    {
+      "id": "swe-bench-pro",
+      "label": "SWE-bench-Pro",
+      "module_status": "blocked",
+      "module_relevance": "conditional-full-attention-only",
+      "path_hypothesis": "Agent tool-result turns may extend a cached conversation and exercise continuing-prefill. The agent/tool budget, repository and fresh-sandbox regrader must remain identical; observe the path instead of assuming every turn hits it.",
+      "path_observations": [],
+      "data_readiness": "asset-frozen",
+      "source_revision": "2d52cb3df914a3fcf80c7f66738b3a88ae37fc50",
+      "split": "default, hard, and v1 test Parquet snapshots",
+      "sample_count": null,
+      "sample_count_scope": "Snapshot files are frozen; task IDs and repository/image mapping must be extracted into the formal execution manifest.",
+      "manifest_sha256": "2666f482a6f6c974cde19b6549f72ee37df82a93c9dc032754005af3a839299b",
+      "primary_metric": "Resolved task rate in isolated regrading",
+      "shared_progress": {
+        "evidence_kind": "shared-source-and-image-metadata-audit",
+        "source_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254#issuecomment-6090192232",
+        "implementation_path": "scripts/audit_pyramidkv_swe.py",
+        "aqkv_runtime_verified": false,
+        "summary": "The shared V2 audit covers 642 tasks, repo revisions, harness bytes and AMD64 image metadata. Root-license identification does not grant task rights; preserve the documented harness CRLF difference."
+      },
+      "current_blockers": [
+        {
+          "owner": null,
+          "required_input": "Task rights review, assigned AMD64 fresh-sandbox backend, and pinned agent/tool/budget/regrader/runtime contract."
+        },
+        {
+          "owner": "XilingGao",
+          "required_input": "Integrate the reviewed repo/image mapping and preserve exact harness bytes, complete task failures and real AQKV-path receipts."
+        }
+      ],
+      "canonical_blockers": [
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Upstream does not declare a dataset-card license; complete license review before formal execution.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        },
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Freeze task IDs, code repository revisions, fresh-sandbox image digests, agent scaffold, tool policy, budget, and regrader.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        }
+      ],
+      "execution_contract": {
+        "task_manifest_sha256": null,
+        "scorer_revision": null,
+        "execution_environment_digest": null,
+        "rights_review_receipt": null,
+        "agent_contract_sha256": null,
+        "b0_b1_pair_sha256": null
+      },
+      "formal_execution_complete": false,
+      "raw_result_artifacts": [],
+      "task_quality": null,
+      "supporting_telemetry": null
+    },
+    {
+      "id": "frontierscience",
+      "label": "FrontierScience",
+      "module_status": "blocked",
+      "module_relevance": "conditional-full-attention-only",
+      "path_hypothesis": "Both tracks may use full-attention KV, but their scoring contracts differ. Keep Olympiad and Research separate and record eligible continuing-prefill dispatches per track.",
+      "path_observations": [],
+      "data_readiness": "asset-frozen",
+      "source_revision": "25ed67db7da8f4591484e764008ff585544f5a30",
+      "split": "olympiad/test and research/test",
+      "sample_count": 160,
+      "sample_count_scope": "Olympiad 100 and Research 60; the tracks remain separate in formal reporting.",
+      "manifest_sha256": "2666f482a6f6c974cde19b6549f72ee37df82a93c9dc032754005af3a839299b",
+      "primary_metric": "Track-specific accuracy or rubric score",
+      "shared_progress": {
+        "evidence_kind": "shared-candidate-input-and-grader-implementation",
+        "source_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254#issuecomment-6090192232",
+        "implementation_path": "src/vllm_hust_benchmark/frontierscience_pyramidkv.py",
+        "aqkv_runtime_verified": false,
+        "summary": "Separate 100/60 source-row inventories and candidate solver/grader code exist. Research's 59 unique group IDs must not deduplicate its 60 rows. This is not the official judge protocol or semantic calibration."
+      },
+      "current_blockers": [
+        {
+          "owner": null,
+          "required_input": "Review the separate track protocol; provide an actually available pinned judge and passing semantic calibration bound before solver outputs, plus the execution environment."
+        },
+        {
+          "owner": "XilingGao",
+          "required_input": "Use track/source-row identities, preserve null scores on incomplete grading, and verify our runtime arms without inheriting PyramidKV applicability."
+        }
+      ],
+      "canonical_blockers": [
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Freeze separate Olympiad and Research task manifests, scorers, and execution environment.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        }
+      ],
+      "execution_contract": {
+        "task_manifest_sha256": null,
+        "scorer_revision": null,
+        "execution_environment_digest": null,
+        "rights_review_receipt": null,
+        "agent_contract_sha256": null,
+        "b0_b1_pair_sha256": null
+      },
+      "formal_execution_complete": false,
+      "raw_result_artifacts": [],
+      "task_quality": null,
+      "supporting_telemetry": null
+    },
+    {
+      "id": "terminal-bench-2.1",
+      "label": "Terminal-Bench 2.1",
+      "module_status": "blocked",
+      "module_relevance": "conditional-full-attention-only",
+      "path_hypothesis": "Agent/tool history may produce continuing-prefill on the target server. Harbor task resolution is the primary result; runtime images and tool budgets cannot be changed to manufacture a throughput gain.",
+      "path_observations": [],
+      "data_readiness": "asset-frozen",
+      "source_revision": "7131e4375048a0e408a8fb404b5f499d726b695b",
+      "split": "89 task definitions",
+      "sample_count": 89,
+      "sample_count_scope": "Task definitions and harness metadata are frozen; approximately 40 GB of runtime images were intentionally not pre-pulled.",
+      "manifest_sha256": "2666f482a6f6c974cde19b6549f72ee37df82a93c9dc032754005af3a839299b",
+      "primary_metric": "Resolved task rate (pass@1)",
+      "shared_progress": {
+        "evidence_kind": "shared-candidate-plan-and-other-mod-local-transport",
+        "source_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254#issuecomment-6090901155",
+        "implementation_path": "scripts/prepare_pyramidkv_terminal.py",
+        "aqkv_runtime_verified": false,
+        "summary": "Task/image metadata audits and a Harbor 0.24.0 candidate plan exist. A local 55-input/23-output model call has no sandbox, verifier or task score; job-b0 does not switch server activation."
+      },
+      "current_blockers": [
+        {
+          "owner": null,
+          "required_input": "Assigned AMD64 Docker/Harbor backend, effective resource limits, image layers pinned by digest, actual backend-to-model connectivity/authentication and task rights/canonical review."
+        },
+        {
+          "owner": "XilingGao",
+          "required_input": "Verify fresh-sandbox reference/failure/verifier behavior and actual AQKV B0/B1 runtime activation; preserve nested request retries and task policies."
+        }
+      ],
+      "canonical_blockers": [
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Pull and freeze all required Harbor runtime image digests; the task snapshot alone is not executable.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        },
+        {
+          "owner": null,
+          "scope": "benchmark-contract",
+          "required_input": "Freeze the agent scaffold, tool policy, budget, scorer, and task-level third-party rights review.",
+          "evidence_url": "https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254"
+        }
+      ],
+      "execution_contract": {
+        "task_manifest_sha256": null,
+        "scorer_revision": null,
+        "execution_environment_digest": null,
+        "rights_review_receipt": null,
+        "agent_contract_sha256": null,
+        "b0_b1_pair_sha256": null
+      },
+      "formal_execution_complete": false,
+      "raw_result_artifacts": [],
+      "task_quality": null,
+      "supporting_telemetry": null
+    }
+  ]
+}

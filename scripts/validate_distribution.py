@@ -7,10 +7,15 @@ import argparse
 import configparser
 import hashlib
 import json
+import os
+import posixpath
+import re
 import stat
+import tarfile
 import zipfile
 from email.parser import BytesParser
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 EXPECTED_DISTRIBUTION = "vllm-ascend-adaptive-quantized-kv-hust"
 EXPECTED_VERSION = "0.1.0.dev0"
@@ -39,9 +44,56 @@ def _regular_file(info: zipfile.ZipInfo) -> bool:
     return not mode or stat.S_ISREG(mode)
 
 
+def validate_sdist_links(sdist: Path) -> dict[str, int]:
+    """Check packaged Markdown destinations without extracting archive members."""
+    with tarfile.open(sdist) as archive:
+        members = archive.getmembers()
+        roots = {item.name.partition("/")[0] for item in members}
+        if len(roots) != 1:
+            raise ValueError("sdist must have one root")
+        files = {}
+        for item in members:
+            relative = item.name.partition("/")[2]
+            if (
+                item.name.startswith("/")
+                or ".." in item.name.split("/")
+                or item.issym()
+                or item.islnk()
+            ):
+                raise ValueError("sdist contains unsafe or linked members")
+            if item.isfile():
+                if not relative or relative in files:
+                    raise ValueError("sdist contains missing or duplicate file names")
+                files[relative] = item
+        links = 0
+        for name, item in files.items():
+            if not name.endswith(".md"):
+                continue
+            if item.size > 2 * 1024 * 1024:
+                raise ValueError("sdist Markdown exceeds byte cap")
+            stream = archive.extractfile(item)
+            if stream is None:
+                raise ValueError("sdist Markdown is not readable")
+            with stream:
+                markdown = stream.read(2 * 1024 * 1024 + 1).decode("utf-8")
+            for target in re.findall(r"(?<!!)\[[^\]]*\]\(([^)]+)\)", markdown):
+                parsed = urlsplit(target.strip("<>"))
+                if parsed.scheme or parsed.netloc or not parsed.path:
+                    continue
+                path = unquote(parsed.path)
+                destination = posixpath.normpath(
+                    posixpath.join(posixpath.dirname(name), path)
+                )
+                if path.startswith("/") or destination not in files:
+                    raise ValueError(f"sdist local link missing: {name} -> {target}")
+                links += 1
+        return {"files": len(files), "local_file_links": links}
+
+
 def validate_distribution(dist: Path) -> dict[str, object]:
     wheel = _single(sorted(dist.glob("*.whl")), "wheel")
     sdist = _single(sorted(dist.glob("*.tar.gz")), "sdist")
+    sdist_links = validate_sdist_links(sdist)
 
     with zipfile.ZipFile(wheel) as archive:
         entries = archive.infolist()
@@ -97,7 +149,11 @@ def validate_distribution(dist: Path) -> dict[str, object]:
         "version": EXPECTED_VERSION,
         "extension_id": EXPECTED_EXTENSION_ID,
         "wheel": {"name": wheel.name, "sha256": _sha256(wheel)},
-        "sdist": {"name": sdist.name, "sha256": _sha256(sdist)},
+        "sdist": {
+            "name": sdist.name,
+            "sha256": _sha256(sdist),
+            "packaged_links": sdist_links,
+        },
         "runtime_activation_present": False,
     }
 
@@ -110,12 +166,19 @@ def main() -> int:
 
     try:
         receipt = validate_distribution(args.dist)
-    except (OSError, ValueError, json.JSONDecodeError, zipfile.BadZipFile) as error:
+    except (OSError, ValueError, tarfile.TarError, zipfile.BadZipFile) as error:
         parser.error(str(error))
 
     rendered = json.dumps(receipt, indent=2) + "\n"
-    if args.output is not None:
-        args.output.write_text(rendered, encoding="utf-8")
+    try:
+        if args.output is not None:
+            descriptor = os.open(
+                args.output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600
+            )
+            with os.fdopen(descriptor, "w", encoding="utf-8") as output:
+                output.write(rendered)
+    except OSError as error:
+        parser.error(str(error))
     print(rendered, end="")
     return 0
 

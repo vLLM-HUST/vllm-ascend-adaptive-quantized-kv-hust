@@ -1,0 +1,33 @@
+{
+  "schema_version": "aqkv-mmlu-scorer-binding-receipt/v1",
+  "status": "source-bound-development-fixture-check-passed",
+  "evidence_kind": "development-fixture",
+  "dataset_revision": "b189ec765aa7ed75c8acfea42df31fdae71f97be",
+  "benchmark_revision": "8ed7ec9a16075c5bce5644a68a712139a6e5d403",
+  "task_count": 70,
+  "coverage": "explicit-named-subset-candidate-unreviewed",
+  "source_tasks_sha256": "0aff3eed2e7e4d24777c1902a2673827a766803f2c19de565ddd80b153fb621a",
+  "tokenized_tasks_sha256": "d5de36d2dda4961b68921473e79934ab65222e55af8d09a600ab0a35c4c44ba1",
+  "scorer_bundle_sha256": "a1b9d6a95b47797b094e14fe4f28ace22e190edcc753ece00ae38413e9254da3",
+  "fixture_report_sha256": "fc6f1fccf5cdea76f74a08d9ba7bacb440a3fc729243cc5a52aad7841d3a4585",
+  "verification": {
+    "official_source_and_local_tokens_rebuilt": true,
+    "full_request_generation_bound": true,
+    "ordered_case_denominator": 70,
+    "synthetic_failures_retained_per_arm": 70,
+    "source_binding_verified": true,
+    "serving_tokenizer_verified": false,
+    "model_weights_verified": false,
+    "transport_verified": false,
+    "runtime_activation_verified": false,
+    "model_requests_sent": 0,
+    "task_quality": null
+  },
+  "claim_boundary": {
+    "runtime_ready": false,
+    "execution_authorized": false,
+    "task_quality_claim": false,
+    "performance_claim": false,
+    "public_surface_restoration": false
+  }
+}

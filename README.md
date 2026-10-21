@@ -12,7 +12,7 @@ Repository:
 
 This repository is at package stage P1. It provides:
 
-- a static experimental 0.2 manifest discoverable by `vllm-hust-ext` without importing
+- a static experimental 0.3 manifest discoverable by `vllm-hust-ext` without importing
   implementation modules;
 - fail-closed host-contract compatibility receipts;
 - typed validation of the retained ACL graph reset and recapture receipts;
@@ -56,11 +56,33 @@ with its fixed `intellistream/llm-serving-workloads` gitlink.
 - Host architecture, interface delivery, and final go/no-go owner:
   [`@ShuhaoZhangTony`](https://github.com/ShuhaoZhangTony), as recorded in
   [Issue #1](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/1).
-- Active integration work is tracked in Draft PR #4; the default package remains
-  `import_only` until the restoration matrix is satisfied.
-- The first preregistered delivery test is `Qwen3.5-35B-A3B`, TP2, APC, MTP2,
-  async scheduling and `FULL_AND_PIECEWISE`, using the official
-  `prefix-repetition-online-2chip` benchmark scenario. Its contract is in
+- Plugin PR #4 and #5 are merged; PR #11 aligns the package with manifest 0.3.
+  These merges do not establish Host acceptance or runtime activation. The default
+  package remains `import_only` until the restoration matrix is satisfied.
+- The current delivery priority is the five Pujiang-specified datasets under
+  [Issue #10](https://github.com/vLLM-HUST/vllm-ascend-adaptive-quantized-kv-hust/issues/10)
+  and the canonical
+  [benchmark ledger #254](https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/254).
+  The prepared, unreviewed applicability matrix and execution blockers are in
+  [`docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md`](docs/PUJIANG_FIVE_DATASET_CONTROL_20261009.md).
+  The active [V5.5 control](docs/PUJIANG_V55_ALIGNMENT_20261012.md) keeps actual
+  release/runtime identities with release and evaluation engineering, not inferred
+  from local fixtures. The [target-path verification plan](docs/PUJIANG_PATH_VERIFICATION_PLAN_20261012.md)
+  is prepared, not a reviewed observer API or a runtime receipt.
+  Task quality is primary; serving telemetry is supplementary.
+  The pinned shared-tool review and MMLU stored-output adapter are documented in
+  [`docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md`](docs/PUJIANG_SHARED_REUSE_REVIEW_20261010.md).
+  The [HLE/SWE source audit](docs/PUJIANG_HLE_SWE_SOURCE_AUDIT_20261012.md) binds
+  public HLE inventories and actual SWE source rows to pinned provenance; it does
+  not rerun raw HLE data, sandbox tasks, judges, or registry layer verification.
+  The [Terminal source audit](docs/PUJIANG_TERMINAL_SOURCE_AUDIT_20261012.md)
+  binds source bytes and task policies; explicit staged inputs can also bind local
+  file bytes and Git permissions. This does not verify registry images, backend
+  availability, verifier execution or task quality.
+  Offline rescoring does not establish official scores or AQKV runtime evidence.
+- The existing preregistered `Qwen3.5-35B-A3B`, TP2, APC, MTP2, async and
+  `FULL_AND_PIECEWISE` prefix-repetition pilot is retained as supplementary
+  diagnostic work, not as a substitute for those five evaluations. Its contract is in
   [`docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md`](docs/QWEN35_PREFIX_REPETITION_PILOT_20260928.md).
 
 Maintained does not mean runtime-ready: calibrated profile delivery, an accepted
@@ -68,7 +90,7 @@ and reachable Host/provider revision, real Manager activation, NPU correctness,
 graph replay, rollback and cleanup evidence remain mandatory before performance
 testing or public relisting.
 
-The prioritized pre-October delivery plan is maintained in
+The historical pre-October delivery plan is retained in
 [`docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md`](docs/PRE_OCTOBER_DELIVERY_EXECUTION_GUIDE_20260928.md).
 
 ## Identity
@@ -130,6 +152,9 @@ uv pip install -e ".[test,component]"
 The explicit module is `vllm_ascend_adaptive_quantized_kv.reference`, exposing
 `paged_int8_attention_reference`. Its docstring specifies the input contract;
 `tests/test_reference.py` supplies executable input and dense-oracle examples.
+The [tile/page cost review](docs/REFERENCE_TILE_COST_REVIEW_20261012.md)
+counts repeated dequantization and floating QK/PV in this CPU reference; it is
+not a hardware traffic, memory-peak, or performance measurement.
 CPU FP64/FP32/FP16/BF16 agreement does not establish bitwise FIA equivalence,
 NPU correctness, graph safety, quality or end-to-end performance. Default
 discovery imports neither Torch nor the reference; the manifest remains inert.
@@ -152,7 +177,10 @@ decisions are tracked in [the takeover control](docs/PR19_TAKEOVER_CONTROL_20260
 
 Historical experiment runners, raw evidence, and claims remain in
 [`intellistream/ascend-adaptive-quantized-kv`](https://github.com/intellistream/ascend-adaptive-quantized-kv).
-They are not copied into the runtime package. Public delivery contracts and
+They are not copied into the runtime package. New canonical five-dataset results
+must enter `vLLM-HUST/vllm-hust-benchmark` before website synchronization;
+planning records in this repository contain no measured scores.
+Public delivery contracts and
 fail-closed validators that contain no runtime result are maintained here; see
 the
 [`Qwen3.5 correctness contract`](docs/QWEN35_CORRECTNESS_RECEIPT_CONTRACT_20260929.md)
